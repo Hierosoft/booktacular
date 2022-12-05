@@ -33,6 +33,7 @@ Possible alternatives:
 import sys
 import os
 import re
+import shutil
 # from collections import OrderedDict
 
 
@@ -399,7 +400,9 @@ class ScribusProject:
                         if dst_parent not in done_mkdir_paths:
                             print('mkdir "{}"'.format(dst_parent))
                             done_mkdir_paths.append(dst_parent)
+                            os.makedirs(dst_parent)
                     print('mv "{}" "{}"'.format(sub_path, new_path))
+                    shutil.move(sub_path, new_path)
                 else:
                     echo0("NOT FOUND")
                     bad_paths.append(sub)
