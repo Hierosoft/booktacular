@@ -16,8 +16,12 @@ from __future__ import division
 import sys
 import os
 
-# import pyscribus.sla as sla
-from .find_hierosoft import hierosoft
+if __name__ == "__main__":
+    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+
+from tabletopper.find_pyscribus import pyscribus
+import pyscribus.sla as sla
+from tabletopper.find_hierosoft import hierosoft
 from hierosoft import (
     echo0,
     echo1,
@@ -47,17 +51,19 @@ def move_safe(src, dst):
     # shutil.move(src, dst)
 
 
+
 def pull_images(options):
-    # parsed = sla.SLA(sla_file, "1.5.8")
+    echo0("options={}".format(options))
+    old_dir = options['old_dir']
+    sla_file = options['sla_file']
+
+    parsed = sla.SLA(sla_file, "1.5.8")
     # ^ fails with "pyscribus.exceptions.InvalidDim: Pica points must
     #   not be inferior to 0." See
     #   <https://framagit.org/etnadji/pyscribus/-/issues/1>
     #   (See also unrelated
     #   <http://etnadji.fr/pyscribus/guide/en/psm.html>)
-    echo0("options={}".format(options))
-    old_dir = options['old_dir']
-    sla_file = options['sla_file']
-    raise NotImplementedError("pull_images")
+
     return 0
 
 
