@@ -268,6 +268,164 @@ class SGML:
 
         return self._chunkdef
 
+class ScribusProject:
+    def __init__(self, path):
+        self._path = path
+        self._original_size = os.path.getsize(self._path)
+        self._data = None
+        self.reload()
+
+    def get_path(self):
+        return self._path
+
+    def reload(self, force=True):
+        '''
+        Reload from storage.
+
+        Keyword arguments:
+        force -- Reload even if self._data is already present.
+        '''
+        if (self._data is None) or force:
+            echo1('Loading "{}"'.format(self._path))
+            with open(self._path) as f:
+                self._data = f.read()
+
+    def save(self):
+        with open(self._path, 'w') as outs:
+            outs.write(self._data)
+
+    def move_images(self, old_dir):
+        '''
+        Move images from the directory that used to contain the SLA
+        file.
+
+        Sequential arguments:
+        old_dir -- The directory where the SLA file used to reside that
+            has the images cited in the SLA file.
+        '''
+        new_dir = os.path.dirname(os.path.realpath(self._path))
+        if os.path.realpath(old_dir) == new_dir:
+            raise ValueError(
+                'The source and destination directory are the same: "{}".'
+                ''.format(old_dir)
+            )
+        percent_s = None
+        in_size = self._original_size
+        self.reload(force=False)
+        self._sgml = SGML(self._data)
+        sgml = self._sgml
+
+        inline_images = []
+        full_paths = []
+        bad_paths = []
+
+        new_data = ""
+        done_mkdir_paths = []
+        for chunkdef in self._sgml:
+            ratio = float(chunkdef['start']) / float(in_size)
+            if percent_s is not None:
+                sys.stderr.write("\b"*len(percent_s))
+                percent_s = None
+            percent_s = str(int(ratio * 100)) + "%"
+            sys.stderr.write(percent_s)
+            sys.stderr.flush()
+            chunk = sgml.chunk_from_chunkdef(chunkdef)
+            properties = None
+            if chunkdef['context'] == SGML.START:
+                properties = chunkdef['properties']
+            sub = None
+            tag = chunkdef.get('tag')
+            if tag is not None:
+                if get_verbosity() >= 2:
+                    if percent_s is not None:
+                        sys.stderr.write("\b"*len(percent_s))
+                        percent_s = None
+                echo2("tag=`{}` properties=`{}`"
+                      "".format(tag, properties))
+                if properties is not None:
+                    # Only opening tags have properties,
+                    #   not closing tags such as </p>.
+                    sub = properties.get('PFILE')
+            else:
+                if get_verbosity() >= 2:
+                    if percent_s is not None:
+                        sys.stderr.write("\b"*len(percent_s))
+                        percent_s = None
+                echo2("content=`{}`".format(chunk))
+            isInlineImage = False
+            if ((properties is not None)
+                    and (properties.get('isInlineImage') == "1")):
+                isInlineImage = True
+                # An inline image...
+                # Adds:
+                # - ImageData (has base64-encoded data)
+                # - inlineImageExt="png"
+                # - isInlineImage="1"
+                # - ANNAME=" image843"
+                # Changes:
+                # - PFILE=""
+                # - FRTYPE="3"  instead of "0" (always?)
+                # - CLIPEDIT="1" instead of "0" (always?)
+                inline_stats = {
+                    'OwnPage': int(properties.get('OwnPage')) + 1,
+                    'inlineImageExt': properties.get('inlineImageExt'),
+                    'FRTYPE': properties.get('FRTYPE'),
+                    'CLIPEDIT': properties.get('CLIPEDIT'),
+                    # also has ImageData but that is large (base64).
+                }
+                inline_images.append(inline_stats)
+                # ^ pages start at 0 here, but not in GUI.
+                sub = None
+            if sub is not None:
+                if percent_s is not None:
+                    sys.stderr.write("\b"*len(percent_s))
+                    percent_s = None
+
+                sub_path = os.path.join(old_dir, sub)
+                is_full_path = False
+                if os.path.realpath(sub) == sub:
+                    sub_path = sub
+                    full_paths.append(sub)
+                    is_full_path = True
+
+                write0('* checking `{}`...'.format(sub_path))
+                if isInlineImage:
+                    pass
+                elif os.path.isfile(sub_path):
+                    echo0("OK")
+                    new_path = os.path.join(new_dir, sub)
+                    dst_parent = os.path.dirname(new_path)
+                    if not os.path.isdir(dst_parent):
+                        if dst_parent not in done_mkdir_paths:
+                            print('mkdir "{}"'.format(dst_parent))
+                            done_mkdir_paths.append(dst_parent)
+                    print('mv "{}" "{}"'.format(sub_path, new_path))
+                else:
+                    echo0("NOT FOUND")
+                    bad_paths.append(sub)
+                # Update chunk using the modified property:
+                chunk = sgml.chunk_from_chunkdef(chunkdef)
+            new_data += chunk
+            # sys.stdout.write(chunk)
+            # sys.stdout.flush()
+        if percent_s is not None:
+            sys.stderr.write("\b"*len(percent_s))
+            percent_s = None
+        echo0("100%")
+        echo1()
+        if len(bad_paths) > 0:
+            echo1("bad_paths:")
+            for bad_path in bad_paths:
+                echo1('- "{}"'.format(bad_path))
+        if len(full_paths) > 0:
+            echo1("full_paths:")
+            for full_path in full_paths:
+                echo1('- "{}"'.format(full_path))
+        if len(inline_images) > 0:
+            echo1("inline_images (+1 for GUI numbering):")
+            for partial_properties in inline_images:
+                echo1('- "{}"'.format(partial_properties))
+
 
 def main():
     echo0("You should import this module instead.")
@@ -290,71 +448,15 @@ def main():
         else:
             echo0('Looking for missing files to move from "{}" for "{}"'
                   ''.format(OLD_DIR, os.path.split(EXAMPLE_FILE)[1]))
-        in_size = os.path.getsize(EXAMPLE_FILE)
-        static_width = 72
-        percent_s = None
-        with open(EXAMPLE_FILE, 'r') as ins:
-            data = ins.read()
-            with open(EXAMPLE_OUT_FILE, 'w') as outs:
-                sgml = SGML(data)
-                for chunkdef in sgml:
-                    ratio = float(chunkdef['start']) / float(in_size)
-                    if percent_s is not None:
-                        sys.stderr.write("\b"*len(percent_s))
-                        percent_s = None
-                    percent_s = str(int(ratio * 100)) + "%"
-                    sys.stderr.write(percent_s)
-                    sys.stderr.flush()
-                    chunk = sgml.chunk_from_chunkdef(chunkdef)
-                    properties = None
-                    if chunkdef['context'] == SGML.START:
-                        properties = chunkdef['properties']
-                    sub = None
-                    tag = chunkdef.get('tag')
-                    if tag is not None:
-                        if get_verbosity() >= 2:
-                            if percent_s is not None:
-                                sys.stderr.write("\b"*len(percent_s))
-                                percent_s = None
-                        echo2("tag=`{}` properties=`{}`"
-                              "".format(tag, properties))
-                        if properties is not None:
-                            # Only opening tags have properties,
-                            #   not closing tags such as </p>.
-                            sub = properties.get('PFILE')
-                    else:
-                        if get_verbosity() >= 2:
-                            if percent_s is not None:
-                                sys.stderr.write("\b"*len(percent_s))
-                                percent_s = None
-                        echo2("content=`{}`".format(chunk))
-                    if sub is not None:
-                        if percent_s is not None:
-                            sys.stderr.write("\b"*len(percent_s))
-                            percent_s = None
 
-                        sub_path = os.path.join(OLD_DIR, sub)
-                        write0('* checking `{}`...'.format(sub_path))
-                        if len(sub) == 0:
-                            # blank image PFILE value
-                            pass
-                        elif os.path.isfile(sub_path):
-                            echo0("OK")
-                        else:
-                            echo0("NOT FOUND")
-                        # Update chunk using the modified property:
-                        chunk = sgml.chunk_from_chunkdef(chunkdef)
-                    outs.write(chunk)
-                    # sys.stdout.write(chunk)
-                    # sys.stdout.flush()
-            if percent_s is not None:
-                sys.stderr.write("\b"*len(percent_s))
-                percent_s = None
-
-            echo0('Done writing "{}"'.format(EXAMPLE_OUT_FILE))
+        project = ScribusProject(EXAMPLE_FILE)
+        project.move_images(OLD_DIR)
+        # project.save()
+        # echo0('Done writing "{}"'.format(project.get_path()))
     else:
         echo0('The example file was skipped since not found: "{}"'
               ''.format(DEMO_FILE))
+        return 1
     return 0
 
 
