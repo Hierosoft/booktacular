@@ -30,12 +30,12 @@ Possible alternatives:
   `scribus -py somescript.py --python-arg v`
   -<https://stackoverflow.com/a/33370042/4541104>
 '''
+from __future__ import print_function
 import sys
 import os
 import re
 import shutil
 # from collections import OrderedDict
-
 
 if __name__ == "__main__":
     sys.path.insert(
@@ -53,7 +53,6 @@ from hierosoft import (
     write0,
     write1,
     write2,
-    replace_vars,
     set_verbosity,
     get_verbosity,
 )
@@ -269,11 +268,13 @@ class SGML:
 
         return self._chunkdef
 
+
 class ScribusProject:
     def __init__(self, path):
         self._path = path
         self._original_size = os.path.getsize(self._path)
         self._data = None
+        self._sgml = None
         self.reload()
 
     def get_path(self):
@@ -290,6 +291,9 @@ class ScribusProject:
             echo1('Loading "{}"'.format(self._path))
             with open(self._path) as f:
                 self._data = f.read()
+                # if self._data is not None:
+                echo0("* parsing...")
+                self._sgml = SGML(self._data)
 
     def save(self):
         with open(self._path, 'w') as outs:
@@ -313,7 +317,6 @@ class ScribusProject:
         percent_s = None
         in_size = self._original_size
         self.reload(force=False)
-        self._sgml = SGML(self._data)
         sgml = self._sgml
 
         inline_images = []
@@ -429,38 +432,35 @@ class ScribusProject:
             for partial_properties in inline_images:
                 echo1('- "{}"'.format(partial_properties))
 
+    def dump_text(self, stream):
+        '''
+        Dump text from all text fields from the project, regardless of
+        order (Use the stored order, not the spatial order).
+        '''
+        if self._data is None:
+            raise ValueError(
+                "The file was not parsed."
+            )
+        echo0("  - dumping...")
+        for chunkdef in self._sgml:
+            properties = None
+            tag = chunkdef.get('tag')
+            # if tag.lower() != 'itext':
+            #     # CH displayable text is usually in ITEXT.
+            #     continue
+            if chunkdef['context'] == SGML.START:
+                properties = chunkdef['properties']
+            CH = None
+            if properties is not None:
+                CH = properties.get('CH')
+            if CH is None:
+                continue
+            stream.write(CH + "\n")
+
 
 def main():
     echo0("You should import this module instead.")
-    MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
-    REPO_DIR = os.path.dirname(MODULE_DIR)
-    EXAMPLE_FILE = os.path.join(REPO_DIR, "The Path of Resistance.sla")
-    EXAMPLE_OUT_FILE = os.path.splitext(EXAMPLE_FILE)[0] + ".example-output.sla"
-    OLD_DIR = os.path.join(replace_vars("%CLOUD%"), "Tabletop", "Campaigns",
-                           "The Path of Resistance")
-    if os.path.isfile(EXAMPLE_FILE):
-        set_verbosity(1)
-        echo0('The module will run in the example with verbosity={}.'
-              ''.format(get_verbosity()))
-        if not os.path.isdir(OLD_DIR):
-            echo0('There is no "{}" for checking the move feature, so '
-                  ' missing files will be checked using relative paths'
-                  ' (OK if already ready for Scribus,'
-                  ' since it uses relative paths).')
-            OLD_DIR = os.path.dirname(EXAMPLE_FILE)
-        else:
-            echo0('Looking for missing files to move from "{}" for "{}"'
-                  ''.format(OLD_DIR, os.path.split(EXAMPLE_FILE)[1]))
-
-        project = ScribusProject(EXAMPLE_FILE)
-        project.move_images(OLD_DIR)
-        # project.save()
-        # echo0('Done writing "{}"'.format(project.get_path()))
-    else:
-        echo0('The example file was skipped since not found: "{}"'
-              ''.format(DEMO_FILE))
-        return 1
-    return 0
+    return 1
 
 
 if __name__ == "__main__":
