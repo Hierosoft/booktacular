@@ -90,21 +90,27 @@ class SGML:
     END = "end"  # the return is an end tag such as </p>
     CONTENT = "content"  # the return is content between tags
 
-    def __init__(self, data):
+    def __init__(self, data, strict=True):
         self._data = data
         self._chunkdef = None
+        self.stack = []
+        self.strict = strict
 
     def chunk_from_chunkdef(self, chunkdef, raw=False):
-        '''
-        Get a slice from a chunkdef that is returned by next. If
-        'context' is START, the tag will be generated from
-        'properties' instead of the slice!
+        '''Get a slice from a chunkdef.
 
-        Keyword arguments:
-        raw -- If True, get the slice from the original data. This
-            would happen even if False if not SGML.START. The raw option
-            allows getting the underlying data that existed before
-            'properties' was modified.
+        Args:
+            chunkdef (dict): chunk definition that is returned by next
+            raw (bool) If True, get the slice from the original data. This
+                would happen even if False if not SGML.START. The raw option
+                allows getting the underlying data that existed before
+                'properties' was modified.
+
+        Returns:
+            string: The literal SGML chunk that represents the chunkdef.
+                If 'context' is START, the tag will be generated from
+                'properties'! Otherwise, the result is a slice of
+                self._data.
         '''
         if (chunkdef['context'] != SGML.START) or raw:
             if (not raw) and chunkdef.get('properties') is not None:
@@ -189,9 +195,23 @@ class SGML:
             self._chunkdef['end'] = self._data.find("<", start+1)
             if self._chunkdef['end'] < 0:
                 self._chunkdef['end'] = len(self._data)
-                echo0('Warning: The file ended before a closing tag'
-                      ' after `{}`.'
-                      ''.format(self._data[self._chunkdef['start']:]))
+                content = self._data[self._chunkdef['start']:]
+                if (len(content.strip()) != 0) or (len(self.stack) > 0):
+                    message = (
+                        'Warning: The file ended before a closing tag'
+                        ' after `{}`.'
+                        ''.format(
+                            content,
+                            self._stack_tagwords(),
+                        )
+                    )
+                    if len(self.stack) > 0:
+                        message += (" (while still in content in {})"
+                                  "".format(content))
+                    else:
+                        message += " (after all tags were closed)"
+                    echo0(message)
+                    del message
         else:
             self._chunkdef['end'] = find_unquoted_even_commented(
                 self._data,
@@ -262,11 +282,48 @@ class SGML:
                     # There are no properties.
                     self._chunkdef['tag'] = chunk[1:props_end].strip()
                     # ^ 1 to avoid "<" and -1 to avoid ">"
+                if self._chunkdef.get('self-closing') is None:
+                    self.stack.append(self._chunkdef)
             elif self._chunkdef['context'] == SGML.END:
                 self._chunkdef['tag'] = chunk[2:-1].strip()
                 # ^ 2 to avoid both "<" and "/" since an SGML.END.
+                if len(self.stack) < 1:
+                    if self.strict:
+                        raise SyntaxError(
+                            "{} ended at {} before a matching opening tag"
+                            " (expected {})"
+                            "".format(
+                                self._chunkdef['tag'],
+                                start,
+                                self._stack_tagwords(),
+                            )
+                        )
+                elif self._chunkdef['tag'] != self.stack[-1]['tag']:
+                    if self.strict:
+                        raise SyntaxError(
+                            "{} ended at {} before the expected {}"
+                            "".format(
+                                self._chunkdef['tag'],
+                                start,
+                                self._stack_tagwords(),
+                            )
+                        )
+                else:
+                    del self.stack[-1]
 
         return self._chunkdef
+
+
+    def _stack_tagwords(self):
+        """Get a list of the current tagwords that are still open.
+
+        Returns:
+            list: tagword strings from innermost to outermost.
+        """
+        results = []
+        for i in reversed(range(0, len(self.stack))):
+            results.append(self.stack[i]['tag'])
+        return results
 
 
 class ScribusProject:
