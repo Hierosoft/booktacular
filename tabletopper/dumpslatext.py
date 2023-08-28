@@ -64,7 +64,7 @@ def dumpslatext(src_path, dst_path, tmp_dir=None):
         #   partial write to dst_path!
         with open(tmp_path, 'w') as stream:
             print('* dumping temp file "{}"'.format(tmp_path))
-            project.dump_text(stream)
+            project.root.dump_text(stream)
         if os.path.isfile(dst_path):
             print("* removing old %s" % pformat(dst_path))
             os.remove(dst_path)

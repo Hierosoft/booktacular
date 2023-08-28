@@ -35,7 +35,8 @@ import sys
 import os
 import re
 import shutil
-# from collections import OrderedDict
+import json
+from collections import OrderedDict
 
 if __name__ == "__main__":
     sys.path.insert(
@@ -67,24 +68,28 @@ from pycodetool.parsing import (
 )
 
 
-class SGML:
-    '''
+class SGMLLexer(object):
+    '''Generate start, content, and end blocks.
+
     This is a generator that provides chunkdefs where each chunk is one
     of the CONTENT_ types. No context such as tag ancestors is
-    calculated within this class.
+    calculated within this class. For the tree, see global parse
+    function, which returns SGMLElementTree.
 
-    When modifying a value of 'properties', ensure that any double quote
+    When modifying a value of 'attributes', ensure that any double quote
     ('"') inside of is converted to "&quot;".
 
-    Private attributes:
-    _data -- The data (set via the feed method)
+    Attributes:
+        _data (string): The data (set via the feed method)
 
     Returns:
-    chunkdef dictionary where start and end define a slice of the data,
-    and 'context' is the CONTEXT_ constant which defines what type of
-    data is at the slice. The slice can be obtained by passing the
-    returned slice to the chunk_from_chunkdef() method.
+        dict: chunkdef dictionary where start and end define a slice of
+            the data, and 'context' is the CONTEXT_ constant which
+            defines what type of data is at the slice. The slice can be
+            obtained by passing the returned slice to the
+            chunk_from_chunkdef() method.
     '''
+    # formerly SGML
 
     START = "start"  # the return is a start tag such as <p>
     END = "end"  # the return is an end tag such as </p>
@@ -102,27 +107,27 @@ class SGML:
         Args:
             chunkdef (dict): chunk definition that is returned by next
             raw (bool) If True, get the slice from the original data. This
-                would happen even if False if not SGML.START. The raw option
+                would happen even if False if not SGMLLexer.START. The raw option
                 allows getting the underlying data that existed before
-                'properties' was modified.
+                'attributes' was modified.
 
         Returns:
-            string: The literal SGML chunk that represents the chunkdef.
+            string: The literal SGMLLexer chunk that represents the chunkdef.
                 If 'context' is START, the tag will be generated from
-                'properties'! Otherwise, the result is a slice of
+                'attributes'! Otherwise, the result is a slice of
                 self._data.
         '''
-        if (chunkdef['context'] != SGML.START) or raw:
-            if (not raw) and chunkdef.get('properties') is not None:
+        if (chunkdef['context'] != SGMLLexer.START) or raw:
+            if (not raw) and chunkdef.get('attributes') is not None:
                 raise ValueError(
-                    'A {} tag should not have properties.'
+                    'A {} tag should not have attributes.'
                     ''.format(chunkdef['context'])
                 )
             return self._data[chunkdef['start']:chunkdef['end']]
-        chunk = "<" + chunkdef['tag']
+        chunk = "<" + chunkdef['tagName']
         # OrderedDict or Python (2.7+? or) 3.7+ must be used to maintain
         # the order:
-        for key, value in chunkdef['properties'].items():
+        for key, value in chunkdef['attributes'].items():
             chunk += " "
             if len(key.strip()) == 0:
                 raise ValueError(
@@ -145,8 +150,8 @@ class SGML:
                         ''.format(badchar, key, value)
                     )
                 chunk += '{}="{}"'.format(key, value)
-        if chunkdef.get('self-closing') is not None:
-            chunk += chunkdef['self-closing'] + ">"
+        if chunkdef.get('self_closer') is not None:
+            chunk += chunkdef['self_closer'] + ">"
         else:
             chunk += ">"
         return chunk
@@ -161,8 +166,13 @@ class SGML:
         return self.next()
 
     def next(self):
+        """Lex (not parse) the next chunk, which can be start, content, or end
+
+        For context and making a tree, see the "parse" method.
+        """
         previous = self._chunkdef
         self._chunkdef = {}
+
         if previous is None:
             start = 0
         else:
@@ -181,17 +191,17 @@ class SGML:
             raise StopIteration()
         self._chunkdef['start'] = start
         if self._data[start:start+2] == "</":
-            self._chunkdef['context'] = SGML.END
+            self._chunkdef['context'] = SGMLLexer.END
         elif self._data[start] == "<":
-            self._chunkdef['context'] = SGML.START
+            self._chunkdef['context'] = SGMLLexer.START
         elif self._data[start:start+1] == ">":
             echo0('Warning: unexpected > at character number {}'
                   ''.format(start))
-            self._chunkdef['context'] = SGML.CONTENT
+            self._chunkdef['context'] = SGMLLexer.CONTENT
         else:
-            self._chunkdef['context'] = SGML.CONTENT
+            self._chunkdef['context'] = SGMLLexer.CONTENT
 
-        if self._chunkdef['context'] == SGML.CONTENT:
+        if self._chunkdef['context'] == SGMLLexer.CONTENT:
             self._chunkdef['end'] = self._data.find("<", start+1)
             if self._chunkdef['end'] < 0:
                 self._chunkdef['end'] = len(self._data)
@@ -229,28 +239,28 @@ class SGML:
             # echo0("{} chunk={}"
             #       "".format(self._chunkdef['context'], chunk))
             # ^ includes the enclosing signs
-            if self._chunkdef['context'] == SGML.START:
+            if self._chunkdef['context'] == SGMLLexer.START:
                 props_end = len(chunk) - 1  # exclude '>'.
                 if chunk.endswith("/>"):
                     props_end -= 1
-                    self._chunkdef['self-closing'] = "/"
+                    self._chunkdef['self_closer'] = "/"
                 elif chunk.endswith("?>"):
                     props_end -= 1
-                    self._chunkdef['self-closing'] = "?"
+                    self._chunkdef['self_closer'] = "?"
                     # Such as `<?xml version="1.0" encoding="UTF-8"?>`
 
-                # self._chunkdef['properties'] = OrderedDict()
+                # self._chunkdef['attributes'] = OrderedDict()
                 # As of Python 3.7, dict order is guaranteed to be the
                 #   insertion order, but OrderedDict
                 #   is still required to support reverse (and
                 #   OrderedDict's own move_to_end method).
                 #   -<https://stackoverflow.com/a/50872567/4541104>
-                self._chunkdef['properties'] = {}
-                properties = self._chunkdef['properties']
+                self._chunkdef['attributes'] = OrderedDict()
+                attributes = self._chunkdef['attributes']
                 # prop_absstart = self._chunkdef['start']
                 props_start = find_whitespace(chunk, 0)
                 if props_start > -1:
-                    self._chunkdef['tag'] = chunk[1:props_start].strip()
+                    self._chunkdef['tagName'] = chunk[1:props_start].strip()
                     # ^ 1 to avoid "<" and props_start to end before the
                     #   first whitespace.
                     statements = explode_unquoted(
@@ -271,48 +281,46 @@ class SGML:
                             if ((len(value) >= 2) and (value[0] == '"')
                                     and (value[-1] == '"')):
                                 value = value[1:-1]
-                            properties[key] = value
+                            attributes[key] = value
                         else:
                             # It is a value-less property.
                             key = statement
-                            properties[key] = None
+                            attributes[key] = None
                 else:
-                    echo2("There are no properties in `{}`"
+                    echo2("There are no attributes in `{}`"
                           "".format(chunk[:30]+"..."))
-                    # There are no properties.
-                    self._chunkdef['tag'] = chunk[1:props_end].strip()
+                    # There are no attributes.
+                    self._chunkdef['tagName'] = chunk[1:props_end].strip()
                     # ^ 1 to avoid "<" and -1 to avoid ">"
-                if self._chunkdef.get('self-closing') is None:
+                if self._chunkdef.get('self_closer') is None:
                     self.stack.append(self._chunkdef)
-            elif self._chunkdef['context'] == SGML.END:
-                self._chunkdef['tag'] = chunk[2:-1].strip()
-                # ^ 2 to avoid both "<" and "/" since an SGML.END.
+            elif self._chunkdef['context'] == SGMLLexer.END:
+                self._chunkdef['tagName'] = chunk[2:-1].strip()
+                # ^ 2 to avoid both "<" and "/" since an SGMLLexer.END.
                 if len(self.stack) < 1:
                     if self.strict:
                         raise SyntaxError(
                             "{} ended at {} before a matching opening tag"
                             " (expected {})"
                             "".format(
-                                self._chunkdef['tag'],
+                                self._chunkdef['tagName'],
                                 start,
                                 self._stack_tagwords(),
                             )
                         )
-                elif self._chunkdef['tag'] != self.stack[-1]['tag']:
+                elif self._chunkdef['tagName'] != self.stack[-1]['tagName']:
                     if self.strict:
                         raise SyntaxError(
                             "{} ended at {} before the expected {}"
                             "".format(
-                                self._chunkdef['tag'],
+                                self._chunkdef['tagName'],
                                 start,
                                 self._stack_tagwords(),
                             )
                         )
                 else:
                     del self.stack[-1]
-
         return self._chunkdef
-
 
     def _stack_tagwords(self):
         """Get a list of the current tagwords that are still open.
@@ -322,35 +330,308 @@ class SGML:
         """
         results = []
         for i in reversed(range(0, len(self.stack))):
-            results.append(self.stack[i]['tag'])
+            results.append(self.stack[i]['tagName'])
         return results
 
 
-class ScribusProject:
+class SGMLText(object):
+    """The most simple chunk in XML/SGML is text (in/after tags).
+
+    Attributes:
+        value (string): text
+        parent (SGMLNode): Node that contains text
+        start (int): position in file
+        end (int): end position in file (exclusive)
+    """
+    KEYS = ['start', 'end', 'value', 'context']
+    def __init__(self):
+        object.__init__(self)
+        self.value = None
+        self.parent = None
+        self.start = None
+        self.end = None
+
+    def to_dict(self, enable_locations=True):
+        result = OrderedDict()
+        for key in type(self).KEYS:
+            if key == "value":
+                result[key] = self.value
+            elif key == "tagName":
+                result[key] = self.tagName
+            elif key == "self_closer":
+                if self.self_closer is not None:
+                    result[key] = self.tagName
+            elif (key in ("start", "end")) and not enable_locations:
+                pass
+            elif key == "context":
+                if type(self).__name__ == "SGMLText":
+                    result[key] = SGMLLexer.CONTENT
+                elif type(self).__name__ == "SGMLNode":
+                    result[key] = SGMLLexer.START
+                elif type(self).__name__ == "SGMLElementTree":
+                    # result[key] = SGMLLexer.START
+                    pass
+                else:
+                    raise NotImplementedError(
+                        "type %s" % type(self).__name__
+                    )
+            else:
+                result[key] = getattr(self, key)
+        if hasattr(self, 'children') and len(self.children) > 0:
+            result['children'] = []
+            for child in self.children:
+                result['children'].append(
+                    child.to_dict(
+                        enable_locations=enable_locations,
+                    )
+                )
+        return result
+
+    @staticmethod
+    def from_chunkdef(chunkdef):
+        result = SGMLText()
+        result._from_chunkdef(chunkdef)
+        return result
+
+    def _from_chunkdef(self, chunkdef):
+        for key, value in chunkdef.items():
+            if key in type(self).KEYS:
+                if key == 'context':
+                    if value != SGMLLexer.CONTENT:
+                        raise NotImplementedError(
+                            "Only %s context can be converted to SGMLText"
+                        )
+                else:
+                    setattr(self, key, value)
+            else:
+                raise NotImplementedError(
+                    "%s can only have %s (insure KEYS matches SGMLLexer code)"
+                    % (type(self).__name__, type(self).KEYS)
+                )
+
+    def _dump_text(self, stream, parent, root, pos_node, page_node):
+        # if node['tagName'].upper() == "PAGEOBJECT":
+
+        attributes = None
+        XPOS = None
+        YPOS = None
+        CH = None
+        OwnPage = None
+        if hasattr(self, 'attributes'):
+            attributes = self.attributes
+            CH = attributes.get('CH')
+            XPOS = attributes.get('XPOS')
+            YPOS = attributes.get('YPOS')
+            if attributes.get("OwnPage") is not None:
+                page_node = self
+            if XPOS is not None:
+                if YPOS is not None:
+                    pos_node = self
+                else:
+                    raise NotImplementedError("XPOS without YPOS at %s"
+                                              % self.start)
+        else:
+            if pos_node:
+                XPOS = pos_node.attributes['XPOS']
+                YPOS = pos_node.attributes['YPOS']
+            if page_node:
+                OwnPage = page_node.attributes['OwnPage']
+        tagName = None
+        tagNameUpper = None
+        if hasattr(self, 'tagName'):
+            tagName = self.tagName
+            tagNameUpper = tagName.upper()
+        children = None
+        if hasattr(self, 'children'):
+            children = self.children
+
+        # if tagName.lower() != 'ITEXT':
+        #     # CH attribute (displayable text) is usually in ITEXT.
+        #     return
+        if CH is not None:
+            stream.write(CH + "\n")
+        if children is None:
+            return
+        for child in children:
+            child._dump_text(stream, self, root, pos_node, page_node)
+
+        return
+
+
+class SGMLNode(SGMLText):
+    """
+    context is *not* an attribute. It maps to a Python type
+    (SGMLText or SGMLNode).
+
+    Attributes:
+        tagName (string): The tagName.
+    """
+    KEYS = ['start', 'end', 'context', 'tagName', 'attributes', 'self_closer']
+
+    def __init__(self):
+        SGMLText.__init__(self)
+        self.tagName = None  # from 'tagName'
+        self.attributes = OrderedDict()  # from 'attributes'
+        self.self_closer = None
+        self.children = []  # Determined by the `populate` method.
+
+    @staticmethod
+    def from_chunkdef(chunkdef):
+        result = SGMLNode()
+        result._from_chunkdef(chunkdef)
+        return result
+
+    def _from_chunkdef(self, chunkdef):
+        for key, value in chunkdef.items():
+            if key in type(self).KEYS:
+                if key == 'context':
+                    if value != SGMLLexer.START:
+                        raise NotImplementedError(
+                            "Only %s context can be converted to SGMLText"
+                            " but context=%s"
+                            % (SGMLLexer.START, value)
+                        )
+                elif key == 'attributes':
+                    for attr_key, attr_value in value.items():
+                        self.attributes[attr_key] = attr_value
+                elif key == 'value':  # TODO: eliminate this if never occurs
+                    self.value = value
+                    raise NotImplementedError(
+                        "unexpected value in opening"
+                        " (should be in next SGMLText)"
+                    )
+                else:
+                    setattr(self, key, value)
+            else:
+                raise ValueError("%s should only have %s but has %s"
+                                 % (type(self).__name__, SGMLText.KEYS, key))
+
+    def populate(self, lexer):
+        """
+        Args:
+            lexer (SGMLLexer): The SGMLLexer
+        """
+        try:
+            while True:
+                chunkdef = lexer.next()
+                context = chunkdef['context']
+                if context in (SGMLLexer.START, SGMLLexer.CONTENT):
+                    if context == SGMLLexer.START:
+                        child = SGMLNode.from_chunkdef(chunkdef)
+                    else:
+                        child = SGMLText.from_chunkdef(chunkdef)
+                    child.parent = self
+                    self.children.append(child)
+                    if context == SGMLLexer.START:
+                        if child.self_closer is None:
+                            child.populate(lexer)
+                        # else self-closing so next child also belongs to self
+                elif context == SGMLLexer.END:
+                    # return to parent
+                    break
+                else:
+                    raise NotImplementedError("Unknown context: %s"
+                                              % context)
+        except StopIteration:
+            pass
+
+
+class SGMLElementTree(SGMLNode):
+    """A hierarchical structure of SGML nodes.
+
+    Attributes:
+        _lexer (SGMLLexer): Iterate through chunks in the raw data
+            (not hierarchical nor OO until parse places results in children).
+        children (list[Union(SGMLNode,SGMLText)]): In the case
+            of SGMLElementTree, children includes one that is root.
+    """
+    def __init__(self):
+        SGMLNode.__init__(self)
+        self._lexer = None
+
+    def dump_text(self, stream):
+        '''Dump all text in spatial order, respecting up to 2 columns.
+
+        Also respect multiple sections per page (if there is a box the
+        width of the whole page, the column order automatically changes
+        - from: left, right
+        - to: top-left, top-right, full-width-box, bottom-left, bottom-right
+        '''
+        if self._lexer is None:
+            raise RuntimeError("you must lex and parse first.")
+
+        if self.children is None:
+            raise RuntimeError("you must parse first.")
+
+        # TODO: sort in spatial order
+        for sub in self.children:
+            sub._dump_text(stream, self, self, None, None)
+
+    def parse(self, lexer):
+        self._lexer = lexer
+        if lexer._data is None:
+            raise ValueError(
+                "The file was not lexed. See (or use) morescribus.parse"
+                " or morescribus.from_string for correct usage of object"
+            )
+        echo0("  - parsing...")
+        min_page = None
+        max_page = None
+        self.populate(lexer)
+        # self.children = self._parse(lexer, self, None, None, None)
+
+
+def from_string(data):
+    """Parse a string.
+
+    This should have work-alike inputs & outputs as lxml.etree's
+    from_string.
+    """
+    lexer = SGMLLexer(data)
+    root = SGMLElementTree()
+    root.parse(lexer)
+    return root
+
+
+def parse(stream):
+    """Parse an open file or stream.
+
+    This should have work-alike inputs & outputs as lxml.etree's
+    parse.
+    """
+    data = stream.read()
+    return from_string(data)
+
+
+class ScribusProject(object):
     def __init__(self, path):
         self._path = path
         self._original_size = os.path.getsize(self._path)
-        self._data = None
-        self._sgml = None
+        # self._data = None  # instead use: self.root._lexer._data
+        self.root = None  # self._lexer = None  # formerly _sgml
         self.reload()
 
     def get_path(self):
         return self._path
 
     def reload(self, force=True):
-        '''
-        Reload from storage.
+        '''Reload from storage.
 
         Keyword arguments:
         force -- Reload even if self._data is already present.
         '''
-        if (self._data is None) or force:
+        if ((self.root is None) or (self.root._lexer is None)
+                or (self.root._lexer._data is None)) or force:
             echo1('Loading "{}"'.format(self._path))
-            with open(self._path) as f:
-                self._data = f.read()
+            with open(self._path) as stream:
+                # self._data = stream.read()  # instead:self.root._lexer._data
                 # if self._data is not None:
-                echo0("* parsing...")
-                self._sgml = SGML(self._data)
+                # echo0("* lexing...")
+                # self._lexer = SGMLLexer(self._data)#instead:self.root._lexer
+                # echo0("* parsing...")
+                # self.root = parse(self._lexer)
+                self.root = parse(stream)
+                # ^ mimic lxml: tree = lxml.etree.parse(in_stream)
 
     def save(self):
         with open(self._path, 'w') as outs:
@@ -374,7 +655,7 @@ class ScribusProject:
         percent_s = None
         in_size = self._original_size
         self.reload(force=False)
-        sgml = self._sgml
+        sgml = self._lexer
 
         inline_images = []
         full_paths = []
@@ -382,7 +663,7 @@ class ScribusProject:
 
         new_data = ""
         done_mkdir_paths = []
-        for chunkdef in self._sgml:
+        for chunkdef in self._lexer:
             ratio = float(chunkdef['start']) / float(in_size)
             if percent_s is not None:
                 sys.stderr.write("\b"*len(percent_s))
@@ -391,31 +672,31 @@ class ScribusProject:
             sys.stderr.write(percent_s)
             sys.stderr.flush()
             chunk = sgml.chunk_from_chunkdef(chunkdef)
-            properties = None
-            if chunkdef['context'] == SGML.START:
-                properties = chunkdef['properties']
+            attributes = None
+            if chunkdef['context'] == SGMLLexer.START:
+                attributes = chunkdef['attributes']
             sub = None
-            tag = chunkdef.get('tag')
-            if tag is not None:
+            tagName = chunkdef.get('tagName')
+            if tagName is not None:
                 if get_verbosity() >= 2:
                     if percent_s is not None:
                         sys.stderr.write("\b"*len(percent_s))
                         percent_s = None
-                echo2("tag=`{}` properties=`{}`"
-                      "".format(tag, properties))
-                if properties is not None:
-                    # Only opening tags have properties,
+                echo2("tagName=`{}` attributes=`{}`"
+                      "".format(tagName, attributes))
+                if attributes is not None:
+                    # Only opening tags have attributes,
                     #   not closing tags such as </p>.
-                    sub = properties.get('PFILE')
+                    sub = attributes.get('PFILE')
             else:
                 if get_verbosity() >= 2:
                     if percent_s is not None:
                         sys.stderr.write("\b"*len(percent_s))
                         percent_s = None
-                echo2("content=`{}`".format(chunk))
+                echo2("value=`{}`".format(chunk))
             isInlineImage = False
-            if ((properties is not None)
-                    and (properties.get('isInlineImage') == "1")):
+            if ((attributes is not None)
+                    and (attributes.get('isInlineImage') == "1")):
                 isInlineImage = True
                 # An inline image...
                 # Adds:
@@ -428,10 +709,10 @@ class ScribusProject:
                 # - FRTYPE="3"  instead of "0" (always?)
                 # - CLIPEDIT="1" instead of "0" (always?)
                 inline_stats = {
-                    'OwnPage': int(properties.get('OwnPage')) + 1,
-                    'inlineImageExt': properties.get('inlineImageExt'),
-                    'FRTYPE': properties.get('FRTYPE'),
-                    'CLIPEDIT': properties.get('CLIPEDIT'),
+                    'OwnPage': int(attributes.get('OwnPage')) + 1,
+                    'inlineImageExt': attributes.get('inlineImageExt'),
+                    'FRTYPE': attributes.get('FRTYPE'),
+                    'CLIPEDIT': attributes.get('CLIPEDIT'),
                     # also has ImageData but that is large (base64).
                 }
                 inline_images.append(inline_stats)
@@ -467,7 +748,7 @@ class ScribusProject:
                     echo0("NOT FOUND")
                     bad_paths.append(sub)
                 # Update chunk using the modified property:
-                chunk = sgml.chunk_from_chunkdef(chunkdef)
+                chunk = self._lexer.chunk_from_chunkdef(chunkdef)
             new_data += chunk
             # sys.stdout.write(chunk)
             # sys.stdout.flush()
@@ -486,11 +767,11 @@ class ScribusProject:
                 echo1('- "{}"'.format(full_path))
         if len(inline_images) > 0:
             echo1("inline_images (+1 for GUI numbering):")
-            for partial_properties in inline_images:
-                echo1('- "{}"'.format(partial_properties))
+            for partial_attributes in inline_images:
+                echo1('- "{}"'.format(partial_attributes))
 
-    def dump_text(self, stream):
-        '''
+    def unordered_dump_text(self, stream):
+        '''Dump text (in XML order--for spatial order see SGMLElementTree)
         Dump text from all text fields from the project, regardless of
         order (Use the stored order, not the spatial order).
         '''
@@ -499,17 +780,17 @@ class ScribusProject:
                 "The file was not parsed."
             )
         echo0("  - dumping...")
-        for chunkdef in self._sgml:
-            properties = None
-            tag = chunkdef.get('tag')
-            # if tag.lower() != 'itext':
+        for chunkdef in self._lexer:
+            attributes = None
+            tagName = chunkdef.get('tagName')
+            # if tagName.lower() != 'itext':
             #     # CH displayable text is usually in ITEXT.
             #     continue
-            if chunkdef['context'] == SGML.START:
-                properties = chunkdef['properties']
+            if chunkdef['context'] == SGMLLexer.START:
+                attributes = chunkdef['attributes']
             CH = None
-            if properties is not None:
-                CH = properties.get('CH')
+            if attributes is not None:
+                CH = attributes.get('CH')
             if CH is None:
                 continue
             stream.write(CH + "\n")
