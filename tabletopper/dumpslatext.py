@@ -44,32 +44,43 @@ def usage():
 
 def dumpslatext(src_path, dst_path, tmp_dir=None):
     tmpdir = None
+    name = os.path.split(src_path)[1]
+    noext_name, new_dotext = os.path.splitext(name)
     try:
         if tmp_dir is None:
             tmpdir = tempfile.TemporaryDirectory()
-            tmp_dir_path = tmpdir.name
+        tmp_dir_path = tmpdir.name
 
         name = os.path.split(src_path)[1]
         noext_name = os.path.splitext(name)[0]
-        new_name = "{}.txt".format(noext_name)
+        new_name = "{}{}".format(noext_name, new_dotext)
         tmp_path = os.path.join(tmp_dir_path, new_name)
         i = 0
         # tmp_paths = list(os.listdir(tmpdir))
         # while tmp_path in tmp_paths:
         #     i += 1
-        #     new_name = "{}-{}.txt".format(noext_name, i)
+        #     new_name = "{}-{}{}".format(noext_name, i, new_dotext)
         #     tmp_path = os.path.join(tmp_path, new_name)
         project = ScribusProject(src_path)
         # write to a tmp file to ensure a crash doesn't cause a
         #   partial write to dst_path!
         with open(tmp_path, 'w') as stream:
             print('* dumping temp file "{}"'.format(tmp_path))
+            # project.root.dump_text_unsorted(stream)
             project.root.dump_text(stream)
         if os.path.isfile(dst_path):
             print("* removing old %s" % pformat(dst_path))
             os.remove(dst_path)
         print("* saving to %s" % pformat(dst_path))
         shutil.move(tmp_path, dst_path)
+        # echo0("Writing json...")
+        # json_name = "{}.json".format(noext_name)
+        # tmp_json_path = os.path.join(tmp_dir_path, json_name)
+        # json_dst = os.path.join(os.path.dirname(dst_path), json_name)
+        # with open(tmp_json_path, 'w') as json_stream:
+        #     import json
+        #     json.dump(project.to_dict(), json_stream)
+        # shutil.move(tmp_json_path, json_dst)
     finally:
         try:
             if tmpdir is not None:
@@ -83,6 +94,11 @@ try_file = os.path.join(REPO_DIR, "The Path of Resistance.sla")
 src_path = None
 
 def main():
+    """This accepts a file.
+
+    For the one that automatically uses the book, use
+    dump_book1_text instead.
+    """
     if len(sys.argv) > 1:
         if not os.path.isfile(sys.argv[1]):
             raise FileNotFoundError(sys.argv[1])
@@ -100,7 +116,7 @@ def main():
     else:
         dst_dir, name = os.path.split(src_path)
         name_noext, oldext = os.path.splitext(name)
-        dst_name = name_noext + ".txt"
+        dst_name = name_noext + ".md"
         dst_path = os.path.join(dst_dir, dst_name)
     '''
     if (sys.version_info.major >= 3) and (sys.version_info.minor >= 10):
@@ -113,6 +129,11 @@ def main():
 
 
 def dump_book1_text():
+    """Unlike main, this alternative CLI main always uses the book.
+
+    This one should be used instead of main for batch operations in the repo
+    of thepathofresistance.
+    """
     if not os.path.isfile(try_file):
         raise FileNotFoundError(
             "You must have %s (normal if running from repo)"
@@ -122,7 +143,7 @@ def dump_book1_text():
     src_path = try_file
     dst_dir, name = os.path.split(src_path)
     name_noext, oldext = os.path.splitext(name)
-    dst_name = name_noext + ".txt"
+    dst_name = name_noext + ".md"
     dst_path = os.path.join(dst_dir, dst_name)
     '''
     if (sys.version_info.major >= 3) and (sys.version_info.minor >= 10):
