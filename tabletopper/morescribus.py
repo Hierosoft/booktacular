@@ -11,6 +11,10 @@ value checking, so it is mostly so that client code (such as
 pull_images.py or your code that imports this submodule) can do
 analysis and mass replacement.
 
+The page numbering does *not* account for overflow frames, so all text
+in the overflow will be considered part of the first box on the previous
+page.
+
 This submodule was started because:
 - pyscribus fails to load "The Path of Resistance.sla" made in scribus
   (beta) 1.5.8 due to sanity checks and sanity checks are not desired
