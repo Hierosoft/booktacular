@@ -173,7 +173,7 @@ class SGMLLexer(object):
                 if badchar in key:
                     raise ValueError(
                         "A property name must not contain '{}' but got `{}`"
-                        "".format(badchar, key+"="+value)
+                        "".format(badchar, "{}={}".format(key, value))
                     )
             if value is None:
                 chunk += key
@@ -214,7 +214,7 @@ class SGMLLexer(object):
         if cb_progress is None:
             def cb_progress(evt):
                 sys.stderr.write(
-                    "\r"+prefix+"{}%".format(round(evt['ratio']*100, 1))
+                    "\r" + prefix + "{}%".format(round(evt['ratio'] * 100, 1))
                 )
         previous = self._chunkdef
         self._chunkdef = {}
@@ -245,11 +245,11 @@ class SGMLLexer(object):
         cb_progress(evt)
         # ^ may be inaccurate if using "feed" method
         self._chunkdef['start'] = start
-        if self._data[start:start+2] == "</":
+        if self._data[start:start + 2] == "</":
             self._chunkdef['context'] = SGMLLexer.END
         elif self._data[start] == "<":
             self._chunkdef['context'] = SGMLLexer.START
-        elif self._data[start:start+1] == ">":
+        elif self._data[start:start + 1] == ">":
             echo0('Warning: unexpected > at character number {}'
                   ''.format(start))
             self._chunkdef['context'] = SGMLLexer.CONTENT
@@ -257,7 +257,7 @@ class SGMLLexer(object):
             self._chunkdef['context'] = SGMLLexer.CONTENT
 
         if self._chunkdef['context'] == SGMLLexer.CONTENT:
-            self._chunkdef['end'] = self._data.find("<", start+1)
+            self._chunkdef['end'] = self._data.find("<", start + 1)
             if self._chunkdef['end'] < 0:
                 self._chunkdef['end'] = len(self._data)
                 content = self._data[self._chunkdef['start']:]
@@ -281,10 +281,10 @@ class SGMLLexer(object):
             self._chunkdef['end'] = find_unquoted_even_commented(
                 self._data,
                 ">",
-                start+1,
+                start + 1,
                 quote_marks='"',
             )
-            if self._chunkdef['end'] < start+1:
+            if self._chunkdef['end'] < start + 1:
                 raise RuntimeError(
                     "The '<' at {} wasn't closed."
                     "".format(start)
@@ -332,7 +332,7 @@ class SGMLLexer(object):
                         sign_i = statement.find("=")
                         if sign_i > -1:
                             key = statement[:sign_i].strip()
-                            value = statement[sign_i+1:].strip()
+                            value = statement[sign_i + 1:].strip()
                             if ((len(value) >= 2) and (value[0] == '"')
                                     and (value[-1] == '"')):
                                 value = value[1:-1]
@@ -343,7 +343,7 @@ class SGMLLexer(object):
                             attributes[key] = None
                 else:
                     echo2("There are no attributes in `{}`"
-                          "".format(chunk[:30]+"..."))
+                          "".format(chunk[:30] + "..."))
                     # There are no attributes.
                     self._chunkdef['tagName'] = chunk[1:props_end].strip()
                     # ^ 1 to avoid "<" and -1 to avoid ">"
@@ -533,7 +533,7 @@ class ScribusPage(object):
         if self.document is None:
             raise ValueError("DOCUMENT node is not set.")
         prefix = "[sort_children_spatially] "
-        echo0(prefix+"sorting page %s+1=%s" % (self.number, self.number+1))
+        echo0(prefix + "sorting page %s+1=%s" % (self.number, self.number + 1))
         new_children = []
         wide_children, narrow_children = self.wide_and_narrow_children()
 
@@ -576,12 +576,12 @@ class ScribusPage(object):
             min_y = MININT
         if len(wide_children) == 0:
             echo0("There are no wide elements in page %s+1=%s"
-                  % (self.number, self.number+1))
+                  % (self.number, self.number + 1))
         if len(wide_children) + len(narrow_children) != len(self.children):
             echo0("%s wide and %s narrow do not add up to %s total"
                   " on page %s+1=%s"
                   % (len(wide_children), len(narrow_children),
-                     len(self.children), self.number, self.number+1))
+                     len(self.children), self.number, self.number + 1))
         wide_children.append(tmp)  # to reorder left or right less than each
         for child in narrow_children:
             child.done = False
@@ -931,8 +931,8 @@ class SGMLText(object):
                     if self.tagName == "ITEXT":
                         raise ValueError("No %s though tagName is %s"
                                          " for %s"
-                                        % (attribute, self.tagName,
-                                           self.to_dict(),))
+                                         % (attribute, self.tagName,
+                                            self.to_dict(),))
                 if not image:
                     pass
                     # This is ok, it may be PAGEOBJECT containing
@@ -962,9 +962,8 @@ class SGMLText(object):
             stream.write("\n![%s](%s)\n" % (alt, image))
         elif value is not None:
             markdown = value.replace(UTF8_BULLET.decode("utf-8"), "*")
-            value_i = None
             try:
-                value_i = int(value)
+                _ = int(value)
                 raise ValueError(
                     "expected data, got number: %s"
                     % self.to_dict()
@@ -989,13 +988,13 @@ class SGMLText(object):
             return
 
         for i, child in enumerate(children):
-            prev_child = children[i-1] if i > 0 else None
+            prev_child = children[i - 1] if i > 0 else None
             # ^ The prev child may not be a bullet such as in
             #   Scribus format:
             #   <para PARENT
             #   <ITEXT FONT  ... [where CH is only a bullet character]
             #   <ITEXT FONTSIZE ... [where CH is text after bullet]
-            next_child = children[i+1] if (i+1 < len(children)) else None
+            next_child = children[i + 1] if (i + 1 < len(children)) else None
             if next_child:
                 # In The Path of Resistance.sla, if the
                 # previous child contains "and giant sil" then the
@@ -1012,14 +1011,14 @@ class SGMLText(object):
                     prev_child_value = None
                     if prev_child:
                         prev_child_value = \
-                                prev_child.get_value(attribute=attribute)
+                            prev_child.get_value(attribute=attribute)
                     # child_value = child.get_value(attribute)
                     # ^ unused (*always blank* for para in Scribus format)
                     if (prev_child_value
                             and (after_prev_bullet in prev_child_value)):
                         _ = next_child.startswith(UTF8_BULLET,
-                                                attribute=attribute,
-                                                test_fail=True)
+                                                  attribute=attribute,
+                                                  test_fail=True)
 
                         # since this is the ELSE case for below, above
                         #   should be False (Match should have para
@@ -1046,7 +1045,7 @@ class SGMLText(object):
                 page_node,
                 attribute=attribute,
                 image_attribute=image_attribute,
-                indent=indent+"  ",
+                indent=indent + "  ",
                 paragraph_tags=paragraph_tags,
                 para_mark=para_mark,
                 tab_tags=tab_tags,
@@ -1111,12 +1110,11 @@ class SGMLNode(SGMLText):
     def cb_progress_populate(self, evt):
         ratio = evt.get('ratio')
         if ratio:
-            sys.stderr.write("\rParsing...{}%".format(round(ratio*100, 1)))
+            sys.stderr.write("\rParsing...{}%".format(round(ratio * 100, 1)))
             sys.stderr.flush()
 
     def cb_done_populate(self, evt):
         echo0("...Done")  # finish the line that cb_progress_populate started.
-
 
     def _populate(self, lexer, cb_progress=None):
         """Parse chunks from lexer and create children recursively.
@@ -1413,11 +1411,11 @@ class ScribusDocRoot(SGMLElementTree):
             "# %s\n"
             % (self.get_title())
         )
-        for index in range(first, last+1):
+        for index in range(first, last + 1):
             page = self._pages.get(index)
             if page is None:
                 echo1("Blank page %s+1=%s (not in %s)"
-                      % (pformat(index), index+1,
+                      % (pformat(index), index + 1,
                          list(sorted(self._pages.keys()))))
                 # There is no PAGEOBJECT/other visible on this page.
                 continue
@@ -1432,10 +1430,10 @@ class ScribusDocRoot(SGMLElementTree):
             stream.write(
                 "\n\n"
                 "## Page %s\n"
-                % (index+1)
+                % (index + 1)
             )
             page.dump_text(stream)
-        echo0(prefix+"count=%s" % count)
+        echo0(prefix + "count=%s" % count)
 
     def collect_pages(self):
         if self._pages is not None:
@@ -1562,7 +1560,7 @@ class ScribusProject(object):
         for chunkdef in self._lexer:
             ratio = float(chunkdef['start']) / float(in_size)
             if percent_s is not None:
-                sys.stderr.write("\b"*len(percent_s))
+                sys.stderr.write("\b" * len(percent_s))
                 percent_s = None
             percent_s = str(int(ratio * 100)) + "%"
             sys.stderr.write(percent_s)
@@ -1576,7 +1574,7 @@ class ScribusProject(object):
             if tagName is not None:
                 if get_verbosity() >= 2:
                     if percent_s is not None:
-                        sys.stderr.write("\b"*len(percent_s))
+                        sys.stderr.write("\b" * len(percent_s))
                         percent_s = None
                 echo2("tagName=`{}` attributes=`{}`"
                       "".format(tagName, attributes))
@@ -1587,7 +1585,7 @@ class ScribusProject(object):
             else:
                 if get_verbosity() >= 2:
                     if percent_s is not None:
-                        sys.stderr.write("\b"*len(percent_s))
+                        sys.stderr.write("\b" * len(percent_s))
                         percent_s = None
                 echo2("value=`{}`".format(chunk))
             isInlineImage = False
@@ -1616,7 +1614,7 @@ class ScribusProject(object):
                 sub = None
             if sub is not None:
                 if percent_s is not None:
-                    sys.stderr.write("\b"*len(percent_s))
+                    sys.stderr.write("\b" * len(percent_s))
                     percent_s = None
 
                 sub_path = os.path.join(old_dir, sub)
@@ -1649,7 +1647,7 @@ class ScribusProject(object):
             # sys.stdout.write(chunk)
             # sys.stdout.flush()
         if percent_s is not None:
-            sys.stderr.write("\b"*len(percent_s))
+            sys.stderr.write("\b" * len(percent_s))
             percent_s = None
         echo0("100%")
         echo1()
@@ -1678,9 +1676,9 @@ class ScribusProject(object):
         echo0("  - dumping...")
         for chunkdef in self._lexer:
             attributes = None
-            tagName = chunkdef.get('tagName')
+            # tagName = chunkdef.get('tagName')
             # if tagName.lower() != 'itext':
-            #     # CH displayable text is usually in ITEXT.
+            #     # ch displayable text is usually in ITEXT.
             #     continue
             if chunkdef['context'] == SGMLLexer.START:
                 attributes = chunkdef['attributes']

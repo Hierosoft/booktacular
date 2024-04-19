@@ -11,13 +11,12 @@ from __future__ import print_function
 import sys
 import os
 import tempfile
-import pathlib
 import subprocess
 
-from tabletopper.find_hierosoft import hierosoft
+from tabletopper.find_hierosoft import hierosoft  # noqa: F401
 # ^ also works for submodules since changes sys.path
 
-from hierosoft import (
+from hierosoft import (  # noqa: F401
     echo0,
     echo1,
     echo2,
@@ -65,8 +64,8 @@ def meldsla(paths, tmp_path=None):
                 print('* dumping temp file "{}"'.format(this_tmp_path))
                 project.dump_text(f)
         cmd_parts = ["meld", tmp_paths[0], tmp_paths[1]]
-        meldq = None
         '''
+        meldq = None
         meldq = which("meldq")
         if meldq is not None:
             cmd_parts[0] = meldq

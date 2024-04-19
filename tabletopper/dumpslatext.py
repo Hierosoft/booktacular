@@ -9,15 +9,13 @@ from __future__ import print_function
 import sys
 import os
 import tempfile
-import pathlib
-import subprocess
 import shutil
 from pprint import pformat
 
-from tabletopper.find_hierosoft import hierosoft
+from tabletopper.find_hierosoft import hierosoft  # noqa: F401
 # ^ also works for submodules since changes sys.path
 
-from hierosoft import (
+from hierosoft import (  # noqa: F401
     echo0,
     echo1,
     echo2,
@@ -55,7 +53,7 @@ def dumpslatext(src_path, dst_path, tmp_dir=None):
         noext_name = os.path.splitext(name)[0]
         new_name = "{}{}".format(noext_name, new_dotext)
         tmp_path = os.path.join(tmp_dir_path, new_name)
-        i = 0
+        # i = 0
         # tmp_paths = list(os.listdir(tmpdir))
         # while tmp_path in tmp_paths:
         #     i += 1
@@ -88,10 +86,12 @@ def dumpslatext(src_path, dst_path, tmp_dir=None):
         except PermissionError:
             pass
 
+
 MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 REPO_DIR = os.path.dirname(MODULE_DIR)
 try_file = os.path.join(REPO_DIR, "The Path of Resistance.sla")
 src_path = None
+
 
 def main():
     """This accepts a file.

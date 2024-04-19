@@ -22,9 +22,9 @@ if __name__ == "__main__":
 
 # from tabletopper.find_pyscribus import pyscribus
 # import pyscribus.sla as sla
-from tabletopper.find_hierosoft import hierosoft
+from tabletopper.find_hierosoft import hierosoft  # noqa: F401
 
-from hierosoft import (
+from hierosoft import (  # noqa: F401
     echo0,
     echo1,
     echo2,
@@ -33,12 +33,16 @@ from hierosoft import (
     # get_verbosity,
 )
 
-from hierosoft.simpleargs import (
-    SimpleArgs,
-)
+# from hierosoft.simpleargs import (
+#     SimpleArgs,
+# )
 
-from hierosoft.moreweb import (
-    HTMLParser,  # debug only (for testing hierosoft issue #3)
+# from hierosoft.moreweb import (
+#     HTMLParser,  # debug only (for testing hierosoft issue #3)
+# )
+
+from tabletopper import (
+    REPO_DIR,
 )
 
 from tabletopper.morescribus import (
@@ -80,32 +84,30 @@ ERROR_MISSING_ARG = 1
 ERROR_BAD_PATH = 2
 
 
-def pull_images(DST_FILE, OLD_DIR):
-    DST_FILE = sys.argv[1]
-    OLD_DIR = sys.argv[2]
-    # EXAMPLE_OUT_FILE = os.path.splitext(DST_FILE)[0] + ".example-output.sla"
-    if not os.path.isfile(DST_FILE):
-        echo('Error: "{}" does not exist.')
+def pull_images(dst_file, old_dir):
+    # EXAMPLE_OUT_FILE = os.path.splitext(dst_file)[0] + ".example-output.sla"
+    if not os.path.isfile(dst_file):
+        echo0('Error: "{}" does not exist.')
         return ERROR_BAD_PATH
     # set_verbosity(1)
     # echo0('The module will run in the example with verbosity={}.'
     #       ''.format(get_verbosity()))
-    if not os.path.isdir(OLD_DIR):
+    if not os.path.isdir(old_dir):
         '''
         echo0('There is no "{}" for checking the move feature, so '
               ' missing files will be checked using relative paths'
               ' (OK if already ready for Scribus,'
               ' since it uses relative paths).')
         '''
-        echo0('Error: OLD_DIR "{}" does not exist.'.format(OLD_DIR))
+        echo0('Error: OLD_DIR "{}" does not exist.'.format(old_dir))
         return ERROR_BAD_PATH
-        OLD_DIR = os.path.dirname(DST_FILE)
+        old_dir = os.path.dirname(dst_file)
     else:
         echo0('Looking for missing files to move from "{}" for "{}"'
-              ''.format(OLD_DIR, os.path.split(DST_FILE)[1]))
+              ''.format(old_dir, os.path.split(dst_file)[1]))
 
-    project = ScribusProject(DST_FILE)
-    project.move_images(OLD_DIR)
+    project = ScribusProject(dst_file)
+    project.move_images(old_dir)
     # project.save()
     # echo0('Done writing "{}"'.format(project.get_path()))
     return 0
@@ -153,7 +155,8 @@ def main():
             echo0("Such as:")
             echo0('pull_images "{}" "{}"'.format(EXAMPLE_FILE, OLD_DIR))
         return 1
-    # DST_FILE = EXAMPLE_FILE
+    # dst_file = EXAMPLE_FILE
+
     return pull_images(sys.argv[1], sys.argv[2])
 
 

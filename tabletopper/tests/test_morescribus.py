@@ -4,9 +4,15 @@ Created on Sun Dec 4, 2022
 
 @author: Jake "Poikilos" Gustafson
 """
+import unittest
+import sys
+import os
+
+from collections import OrderedDict
+from pprint import pformat
 
 
-test_sgml_data='''        <PAGEOBJECT XPOS="766.0008" YPOS="30026.5978352942" OwnPage="72" ItemID="1378889691" PTYPE="2" WIDTH="522" HEIGHT="519.482352941148" FRTYPE="0" CLIPEDIT="0" PWIDTH="1" PLINEART="1" LOCALSCX="0.24" LOCALSCY="0.24" LOCALX="0" LOCALY="0" LOCALROT="0" PICART="1" SCALETYPE="1" RATIO="1" Pagenumber="0" PFILE="images/the_pyramid_and_mercury_mines_entrances.png" IRENDER="0" EMBEDDED="0" path="M0 0 L522 0 L522 519.482 L0 519.482 L0 0 Z" copath="M0 0 L522 0 L522 519.482 L0 519.482 L0 0 Z" gXpos="766.0008" gYpos="30026.5978352942" gWidth="0" gHeight="0" LAYER="0" NEXTITEM="-1" BACKITEM="-1"/>
+test_sgml_data = '''        <PAGEOBJECT XPOS="766.0008" YPOS="30026.5978352942" OwnPage="72" ItemID="1378889691" PTYPE="2" WIDTH="522" HEIGHT="519.482352941148" FRTYPE="0" CLIPEDIT="0" PWIDTH="1" PLINEART="1" LOCALSCX="0.24" LOCALSCY="0.24" LOCALX="0" LOCALY="0" LOCALROT="0" PICART="1" SCALETYPE="1" RATIO="1" Pagenumber="0" PFILE="images/the_pyramid_and_mercury_mines_entrances.png" IRENDER="0" EMBEDDED="0" path="M0 0 L522 0 L522 519.482 L0 519.482 L0 0 Z" copath="M0 0 L522 0 L522 519.482 L0 519.482 L0 0 Z" gXpos="766.0008" gYpos="30026.5978352942" gWidth="0" gHeight="0" LAYER="0" NEXTITEM="-1" BACKITEM="-1"/>
         <PAGEOBJECT XPOS="136.0008" YPOS="30840.12" OwnPage="73" ItemID="1378880123" PTYPE="4" WIDTH="522" HEIGHT="28.7999999999811" FRTYPE="0" CLIPEDIT="0" PWIDTH="1" PLINEART="1" LOCALSCX="1" LOCALSCY="1" LOCALX="0" LOCALY="0" LOCALROT="0" PICART="1" SCALETYPE="1" RATIO="1" COLUMNS="1" COLGAP="0" AUTOTEXT="0" EXTRA="0" TEXTRA="0" BEXTRA="0" REXTRA="0" VAlign="0" FLOP="0" PLTSHOW="0" BASEOF="0" textPathType="0" textPathFlipped="0" path="M0 0 L522 0 L522 28.8 L0 28.8 L0 0 Z" copath="M0 0 L522 0 L522 28.8 L0 28.8 L0 0 Z" gXpos="608" gYpos="14140.0544" gWidth="0" gHeight="0" LAYER="0" NEXTITEM="-1" BACKITEM="-1">
             <StoryText>
                 <DefaultStyle/>
@@ -18,14 +24,6 @@ test_sgml_data='''        <PAGEOBJECT XPOS="766.0008" YPOS="30026.5978352942" Ow
             </PageItemAttributes>
         </PAGEOBJECT>'''
 
-
-import unittest
-import sys
-import os
-
-from collections import OrderedDict
-from pprint import pformat
-
 my_dir = os.path.dirname(os.path.abspath(__file__))
 module_dir = os.path.dirname(my_dir)
 repo_dir = os.path.dirname(module_dir)
@@ -33,9 +31,9 @@ repo_dir = os.path.dirname(module_dir)
 if __name__ == "__main__":
     sys.path.insert(0, repo_dir)
 
-from tabletopper.morescribus import (
+from tabletopper.morescribus import (  # noqa: E402
     SGMLLexer,
-    from_string,
+    # from_string,
     from_string_scribus,
     # SGMLElementTree,
     # SGMLNode,
@@ -62,14 +60,14 @@ spaced_xml_data = """<?xml version="1.0" encoding="UTF-8"?>
 xml_data = (  # NO .value (no content, not even whitespace nor newlines)
     '<?xml version="1.0" encoding="UTF-8"?>'
     '<SCRIBUSUTF8NEW Version="1.5.8">'
-      '<DOCUMENT ANZPAGES="168">'
-        '<PAGEOBJECT XPOS="766.0008" YPOS="1720.008" OwnPage="1">'
-          '<StoryText>'
-            '<DefaultStyle/>'
-            '<ITEXT CH="The print edition has a graphical cover. "/>'
-          '</StoryText>'
-        '</PAGEOBJECT>'
-      '</DOCUMENT>'
+    '<DOCUMENT ANZPAGES="168">'
+    '<PAGEOBJECT XPOS="766.0008" YPOS="1720.008" OwnPage="1">'
+    '<StoryText>'
+    '<DefaultStyle/>'
+    '<ITEXT CH="The print edition has a graphical cover. "/>'
+    '</StoryText>'
+    '</PAGEOBJECT>'
+    '</DOCUMENT>'
     '</SCRIBUSUTF8NEW>'
 )
 DOCTYPE = OrderedDict()
@@ -199,10 +197,10 @@ class TestMoreScribus(unittest.TestCase):
         in_msg = ""
         if key is not None:
             in_msg = " in %s" % pformat(key)
-        if type(d1) != type(d2):
+        if not isinstance(d1, type(d2)):
             raise AssertionError("%s type for %s != type %s for %s%s"
                                  % (type(d1).__name__, d1,
-                                    type(d2).__name__, d2), in_msg)
+                                    type(d2).__name__, d2, in_msg))
         if isinstance(d1, (OrderedDict, dict)):
             if d1.keys() != d2.keys():
                 raise AssertionError("Keys %s != expected keys %s%s"
@@ -223,7 +221,7 @@ class TestMoreScribus(unittest.TestCase):
         else:
             if d1 != d2:
                 raise AssertionError("%s != %s%s"
-                                    % (d1, d2, in_msg))
+                                     % (d1, d2, in_msg))
 
     def test_to_dict(self, data=None, strip=False):
         echo0("strip={}".format(strip))
