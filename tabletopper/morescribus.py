@@ -38,9 +38,9 @@ from __future__ import print_function
 from __future__ import division
 import sys
 import os
-import re
+# import re
 import shutil
-import json
+# import json
 import copy
 
 from collections import OrderedDict
@@ -53,10 +53,10 @@ if __name__ == "__main__":
         os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
     )
 
-from tabletopper.find_hierosoft import hierosoft
+from tabletopper.find_hierosoft import hierosoft  # noqa: F401
 # ^ works for submodules too since changes sys.path
 
-from hierosoft import (
+from hierosoft import (  # noqa: F401
     echo0,
     echo1,
     echo2,
@@ -67,7 +67,7 @@ from hierosoft import (
     get_verbosity,
 )
 
-from tabletopper.find_pycodetool import pycodetool
+from tabletopper.find_pycodetool import pycodetool  # noqa: F401
 # ^ works for submodules too since changes sys.path
 
 from pycodetool.parsing import (
@@ -138,10 +138,10 @@ class SGMLLexer(object):
 
         Args:
             chunkdef (dict): chunk definition that is returned by next
-            raw (bool) If True, get the slice from the original data. This
-                would happen even if False if not SGMLLexer.START. The raw option
-                allows getting the underlying data that existed before
-                'attributes' was modified.
+            raw (bool) If True, get the slice from the original data.
+                This would happen even if False if not SGMLLexer.START.
+                The raw option allows getting the underlying data that
+                existed before 'attributes' was modified.
 
         Returns:
             string: The literal SGMLLexer chunk that represents the chunkdef.
@@ -163,10 +163,11 @@ class SGMLLexer(object):
         # the order:
         for key, value in chunkdef['attributes'].items():
             chunk += " "
-            if len(key.strip()) == 0:
+            if not key.strip():
                 raise ValueError(
                     "A property name must not be blank but got {}"
-                    "".format(badchar, key+"="+value)
+                    " (={})"
+                    "".format(key, value)
                 )
             for badchar in ["=", " "]:
                 if badchar in key:
@@ -260,18 +261,18 @@ class SGMLLexer(object):
             if self._chunkdef['end'] < 0:
                 self._chunkdef['end'] = len(self._data)
                 content = self._data[self._chunkdef['start']:]
-                if (len(content.strip()) != 0) or (len(self.stack) > 0):
+                if content.strip() or self.stack:
                     message = (
                         'Warning: The file ended before a closing tag'
-                        ' after `{}`.'
+                        ' for {} after extra content: "{}".'
                         ''.format(
-                            content,
                             self._stack_tagwords(),
+                            content,
                         )
                     )
                     if len(self.stack) > 0:
                         message += (" (while still in content in {})"
-                                  "".format(content))
+                                    "".format(content))
                     else:
                         message += " (after all tags were closed)"
                     echo0(message)
@@ -288,7 +289,7 @@ class SGMLLexer(object):
                     "The '<' at {} wasn't closed."
                     "".format(start)
                 )
-            self._chunkdef['end'] += 1  # The ender is exclusive so include '>'.
+            self._chunkdef['end'] += 1  # The ender is exclusive: include ">".
             chunk = self.chunk_from_chunkdef(self._chunkdef, raw=True)
             # echo0("{} chunk={}"
             #       "".format(self._chunkdef['context'], chunk))
@@ -380,11 +381,14 @@ class SGMLLexer(object):
             if not value.strip():
                 if self.skip_blank:
                     # Do not return this blank one. Instead, recurse.
-                    return self.next(cb_progress=cb_progress,
-                                        event_template=event_template)
+                    return self.next(
+                        cb_progress=cb_progress,
+                        event_template=event_template,
+                    )
             # else:
             #     if self.skip_blank:
-            #         raise NotImplementedError("Non-blank content in Scribus file")
+            #         raise NotImplementedError(
+            #             "Non-blank content in Scribus file")
         return self._chunkdef
 
     def _stack_tagwords(self):
@@ -638,6 +642,7 @@ class SGMLText(object):
         end (int): end position in file (exclusive)
     """
     KEYS = ['start', 'end', 'value', 'context']
+
     def __init__(self):
         object.__init__(self)
         self.value = None
@@ -645,8 +650,9 @@ class SGMLText(object):
         self.start = None
         self.end = None
 
-    def startswith(self, value, attribute=None, encoding=None, test_fail=False):
-        """
+    def startswith(self, value, attribute=None, encoding=None,
+                   test_fail=False):
+        """Check if starts with a value.
         Args:
             encoding (Optional[string]): An encoding string recognized
                 by Python str's "encode" method. Defaults to "utf-8".
@@ -1371,7 +1377,7 @@ class ScribusDocRoot(SGMLElementTree):
         last = None
         for key in self._pages.keys():
             if not isinstance(key, int):
-                raise KeyError("Expected int for page key, got %s"
+                raise KeyError("Expected int for page key, got %s(%s)"
                                % (type(key).__name__, pformat(key)))
             index = key
             if first is None or index < first:
@@ -1411,7 +1417,8 @@ class ScribusDocRoot(SGMLElementTree):
             page = self._pages.get(index)
             if page is None:
                 echo1("Blank page %s+1=%s (not in %s)"
-                      % (pformat(index), index+1, list(sorted(self._pages.keys()))))
+                      % (pformat(index), index+1,
+                         list(sorted(self._pages.keys()))))
                 # There is no PAGEOBJECT/other visible on this page.
                 continue
             count += 1
