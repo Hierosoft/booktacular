@@ -60,6 +60,8 @@ from hierosoft import (  # noqa: F401
     echo0,
     echo1,
     echo2,
+    echo3,
+    echo4,
     write0,
     write1,
     write2,
@@ -342,7 +344,7 @@ class SGMLLexer(object):
                             key = statement
                             attributes[key] = None
                 else:
-                    echo2("There are no attributes in `{}`"
+                    echo4("There are no attributes in `{}`"
                           "".format(chunk[:30] + "..."))
                     # There are no attributes.
                     self._chunkdef['tagName'] = chunk[1:props_end].strip()
@@ -1576,7 +1578,7 @@ class ScribusProject(object):
                     if percent_s is not None:
                         sys.stderr.write("\b" * len(percent_s))
                         percent_s = None
-                echo2("tagName=`{}` attributes=`{}`"
+                echo4("tagName=`{}` attributes=`{}`"
                       "".format(tagName, attributes))
                 if attributes is not None:
                     # Only opening tags have attributes,
@@ -1587,7 +1589,7 @@ class ScribusProject(object):
                     if percent_s is not None:
                         sys.stderr.write("\b" * len(percent_s))
                         percent_s = None
-                echo2("value=`{}`".format(chunk))
+                echo4("value=`{}`".format(chunk))
             isInlineImage = False
             if ((attributes is not None)
                     and (attributes.get('isInlineImage') == "1")):
