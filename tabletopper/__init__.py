@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 import os
-import sys
+# import sys
+import logging
+logger = logging.getLogger(__name__)
 
 MODULE_DIR = os.path.dirname(__file__)
 REPO_DIR = os.path.dirname(MODULE_DIR)

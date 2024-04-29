@@ -1,14 +1,19 @@
 
 from __future__ import division
 from __future__ import print_function
-from collections import OrderedDict
 
+import logging
+import sys
+
+from collections import OrderedDict
 
 from tabletopper import (
     find_which,
     find_any,
     endswith_any,
 )
+
+logger = logging.getLogger(__name__)
 
 end_deg = (" ", "°")
 end_minutes = ("′", "'")
@@ -135,7 +140,11 @@ def to_gps_coord(coord, strict=True, digits=None):
     if digits is None:
         digits = max_decimals
 
-    total += float(coord)
+    try:
+        total += float(coord)
+    except ValueError:
+        logger.debug("coord={}".format(coord), file=sys.stderr)
+        raise
     if polarity < 0:
         return round(total * polarity, digits)
     return round(total, digits)
