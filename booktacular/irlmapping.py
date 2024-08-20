@@ -7,7 +7,7 @@ import sys
 
 from collections import OrderedDict
 
-from tabletopper import (
+from booktacular import (
     find_which,
     find_any,
     endswith_any,

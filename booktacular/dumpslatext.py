@@ -12,7 +12,7 @@ import tempfile
 import shutil
 from pprint import pformat
 
-from tabletopper.find_hierosoft import hierosoft  # noqa: F401
+from booktacular.find_hierosoft import hierosoft  # noqa: F401
 # ^ also works for submodules since changes sys.path
 
 from hierosoft import (  # noqa: F401
@@ -25,7 +25,7 @@ from hierosoft import (  # noqa: F401
     which,
 )
 
-from tabletopper.morescribus import (
+from booktacular.morescribus import (
     ScribusProject,
 )
 

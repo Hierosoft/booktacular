@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-This submodule is part of the tabletopper module originally from
+This submodule is part of the booktacular module originally from
 <https://github.com/Hierosoft/thepathofresistance>.
 
 Author: Jake "Poikilos" Gustafson
@@ -53,7 +53,7 @@ if __name__ == "__main__":
         os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
     )
 
-from tabletopper.find_hierosoft import hierosoft  # noqa: F401
+from booktacular.find_hierosoft import hierosoft  # noqa: F401
 # ^ works for submodules too since changes sys.path
 
 from hierosoft import (  # noqa: F401
@@ -69,7 +69,7 @@ from hierosoft import (  # noqa: F401
     get_verbosity,
 )
 
-from tabletopper.find_pycodetool import pycodetool  # noqa: F401
+from booktacular.find_pycodetool import pycodetool  # noqa: F401
 # ^ works for submodules too since changes sys.path
 
 from pycodetool.parsing import (

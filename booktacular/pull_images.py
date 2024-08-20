@@ -20,9 +20,9 @@ import os
 if __name__ == "__main__":
     sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-# from tabletopper.find_pyscribus import pyscribus
+# from booktacular.find_pyscribus import pyscribus
 # import pyscribus.sla as sla
-from tabletopper.find_hierosoft import hierosoft  # noqa: F401
+from booktacular.find_hierosoft import hierosoft  # noqa: F401
 
 from hierosoft import (  # noqa: F401
     echo0,
@@ -41,11 +41,11 @@ from hierosoft import (  # noqa: F401
 #     HTMLParser,  # debug only (for testing hierosoft issue #3)
 # )
 
-from tabletopper import (
+from booktacular import (
     REPO_DIR,
 )
 
-from tabletopper.morescribus import (
+from booktacular.morescribus import (
     ScribusProject,
 )
 

@@ -31,7 +31,7 @@ repo_dir = os.path.dirname(module_dir)
 if __name__ == "__main__":
     sys.path.insert(0, repo_dir)
 
-from tabletopper.morescribus import (  # noqa: E402
+from booktacular.morescribus import (  # noqa: E402
     SGMLLexer,
     # from_string,
     from_string_scribus,

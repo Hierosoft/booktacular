@@ -4,7 +4,7 @@ from __future__ import division
 import sys
 import unittest
 
-from tabletopper.irlmapping import (
+from booktacular.irlmapping import (
     clean_coords,
     get_precision,
 )
