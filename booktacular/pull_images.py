@@ -33,17 +33,9 @@ from hierosoft import (  # noqa: F401
     # get_verbosity,
 )
 
-# from hierosoft.simpleargs import (
-#     SimpleArgs,
+# from booktacular import (
+#     REPO_DIR,
 # )
-
-# from hierosoft.moreweb import (
-#     HTMLParser,  # debug only (for testing hierosoft issue #3)
-# )
-
-from booktacular import (
-    REPO_DIR,
-)
 
 from booktacular.morescribus import (
     ScribusProject,
@@ -114,38 +106,9 @@ def pull_images(dst_file, old_dir):
 
 
 def main():
-    """
-    See The module docstring for help.
-    """
-
-    '''
-    if len(sys.argv) < 3:
-        echo0()
-        echo0()
-        echo0(__doc__)
-        echo0("Error: You must specify the old directory"
-              " where the SLA was before moving it.")
-        return 1
-    sequential_keys = ['sla_file', 'old_dir']
-    simpleargs = SimpleArgs(None,
-        sequential_keys=sequential_keys,
-        required=sequential_keys,
-        # flags = ['--pyscribus'],
-        usage_docstring=__doc__,
-    )
-    try:
-        simpleargs.collect()
-    except Exception as ex:
-        simpleargs.usage()
-        echo0("Error: {}".format(ex))
-        return 1
-
-    return pull_images(simpleargs.options)
-    '''
-
     # MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
     # REPO_DIR = os.path.dirname(MODULE_DIR)
-    EXAMPLE_FILE = os.path.join(REPO_DIR, "The Path of Resistance.sla")
+    EXAMPLE_FILE = "The Path of Resistance.sla"
     OLD_DIR = os.path.join(replace_vars("%CLOUD%"), "Tabletop", "Campaigns",
                            "The Path of Resistance")
     if len(sys.argv) != 3:

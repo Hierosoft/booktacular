@@ -1,8 +1,16 @@
 from __future__ import print_function
 from __future__ import division
 
+import os
 import sys
 import unittest
+
+my_dir = os.path.dirname(os.path.abspath(__file__))
+module_dir = os.path.dirname(my_dir)
+repo_dir = os.path.dirname(module_dir)
+
+# if __name__ == "__main__":
+sys.path.insert(0, repo_dir)
 
 from booktacular.irlmapping import (
     clean_coords,

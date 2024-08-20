@@ -4,6 +4,8 @@ Created on Sun Dec 4, 2022
 
 @author: Jake "Poikilos" Gustafson
 """
+from __future__ import print_function
+
 import unittest
 import sys
 import os
@@ -28,8 +30,8 @@ my_dir = os.path.dirname(os.path.abspath(__file__))
 module_dir = os.path.dirname(my_dir)
 repo_dir = os.path.dirname(module_dir)
 
-if __name__ == "__main__":
-    sys.path.insert(0, repo_dir)
+# if __name__ == "__main__":
+sys.path.insert(0, repo_dir)
 
 from booktacular.morescribus import (  # noqa: E402
     SGMLLexer,
@@ -182,7 +184,7 @@ class TestMoreScribus(unittest.TestCase):
         self.assertTrue(pfile_found)
 
     def assertMoreEqual(self, d1, d2, key=None):
-        """Show the difference without elipsis.
+        """Show the difference without ellipsis.
 
         The superclass' assertEqual skips details in big dicts. For example:
         `AssertionError: Order[612 chars]008'), ('OwnPage', '1')])),

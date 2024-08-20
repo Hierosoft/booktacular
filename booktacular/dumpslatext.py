@@ -43,21 +43,21 @@ def usage():
 def dumpslatext(src_path, dst_path, tmp_dir=None):
     tmpdir = None
     name = os.path.split(src_path)[1]
-    noext_name, new_dotext = os.path.splitext(name)
+    no_ext_name, new_dot_ext = os.path.splitext(name)
     try:
         if tmp_dir is None:
             tmpdir = tempfile.TemporaryDirectory()
         tmp_dir_path = tmpdir.name
 
         name = os.path.split(src_path)[1]
-        noext_name = os.path.splitext(name)[0]
-        new_name = "{}{}".format(noext_name, new_dotext)
+        no_ext_name = os.path.splitext(name)[0]
+        new_name = "{}{}".format(no_ext_name, new_dot_ext)
         tmp_path = os.path.join(tmp_dir_path, new_name)
         # i = 0
         # tmp_paths = list(os.listdir(tmpdir))
         # while tmp_path in tmp_paths:
         #     i += 1
-        #     new_name = "{}-{}{}".format(noext_name, i, new_dotext)
+        #     new_name = "{}-{}{}".format(no_ext_name, i, new_dot_ext)
         #     tmp_path = os.path.join(tmp_path, new_name)
         project = ScribusProject(src_path)
         # write to a tmp file to ensure a crash doesn't cause a
@@ -72,7 +72,7 @@ def dumpslatext(src_path, dst_path, tmp_dir=None):
         print("* saving to %s" % pformat(dst_path))
         shutil.move(tmp_path, dst_path)
         # echo0("Writing json...")
-        # json_name = "{}.json".format(noext_name)
+        # json_name = "{}.json".format(no_ext_name)
         # tmp_json_path = os.path.join(tmp_dir_path, json_name)
         # json_dst = os.path.join(os.path.dirname(dst_path), json_name)
         # with open(tmp_json_path, 'w') as json_stream:
@@ -89,7 +89,7 @@ def dumpslatext(src_path, dst_path, tmp_dir=None):
 
 MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
 REPO_DIR = os.path.dirname(MODULE_DIR)
-try_file = os.path.join(REPO_DIR, "The Path of Resistance.sla")
+try_file = "The Path of Resistance.sla"
 src_path = None
 
 
@@ -115,8 +115,8 @@ def main():
         dst_path = sys.argv[2]
     else:
         dst_dir, name = os.path.split(src_path)
-        name_noext, oldext = os.path.splitext(name)
-        dst_name = name_noext + ".md"
+        name_no_ext, _ = os.path.splitext(name)
+        dst_name = name_no_ext + ".md"
         dst_path = os.path.join(dst_dir, dst_name)
     '''
     if (sys.version_info.major >= 3) and (sys.version_info.minor >= 10):
@@ -132,7 +132,7 @@ def dump_book1_text():
     """Unlike main, this alternative CLI main always uses the book.
 
     This one should be used instead of main for batch operations in the repo
-    of thepathofresistance.
+    of The Path of Resistance.
     """
     if not os.path.isfile(try_file):
         raise FileNotFoundError(
@@ -142,8 +142,8 @@ def dump_book1_text():
         )
     src_path = try_file
     dst_dir, name = os.path.split(src_path)
-    name_noext, oldext = os.path.splitext(name)
-    dst_name = name_noext + ".md"
+    name_no_ext, _ = os.path.splitext(name)
+    dst_name = name_no_ext + ".md"
     dst_path = os.path.join(dst_dir, dst_name)
     '''
     if (sys.version_info.major >= 3) and (sys.version_info.minor >= 10):

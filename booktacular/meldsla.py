@@ -49,13 +49,13 @@ def meldsla(paths, tmp_path=None):
         projects = []
         for path in paths:
             name = os.path.split(path)[1]
-            noext_name = os.path.splitext(name)[0]
-            new_name = "{}.txt".format(noext_name)
+            no_ext_name = os.path.splitext(name)[0]
+            new_name = "{}.txt".format(no_ext_name)
             this_tmp_path = os.path.join(tmp_path, new_name)
             i = 0
             while this_tmp_path in tmp_paths:
                 i += 1
-                new_name = "{}-{}.txt".format(noext_name, i)
+                new_name = "{}-{}.txt".format(no_ext_name, i)
                 this_tmp_path = os.path.join(tmp_path, new_name)
             tmp_paths.append(this_tmp_path)
             project = ScribusProject(path)

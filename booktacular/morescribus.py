@@ -31,7 +31,7 @@ This submodule was started because:
 
 Possible alternatives:
 - Run a Python script as an argument to scribus:
-  `scribus -py somescript.py --python-arg v`
+  `scribus -py some_script.py --python-arg v`
   -<https://stackoverflow.com/a/33370042/4541104>
 '''
 from __future__ import print_function
@@ -171,20 +171,20 @@ class SGMLLexer(object):
                     " (={})"
                     "".format(key, value)
                 )
-            for badchar in ["=", " "]:
-                if badchar in key:
+            for bad_chr in ["=", " "]:
+                if bad_chr in key:
                     raise ValueError(
                         "A property name must not contain '{}' but got `{}`"
-                        "".format(badchar, "{}={}".format(key, value))
+                        "".format(bad_chr, "{}={}".format(key, value))
                     )
             if value is None:
                 chunk += key
             else:
-                badchar = '"'
-                if badchar in value:
+                bad_chr = '"'
+                if bad_chr in value:
                     raise ValueError(
                         'A property value must not contain "{}": {}="{}"'
-                        ''.format(badchar, key, value)
+                        ''.format(bad_chr, key, value)
                     )
                 chunk += '{}="{}"'.format(key, value)
         if chunkdef.get('self_closer') is not None:
@@ -268,7 +268,7 @@ class SGMLLexer(object):
                         'Warning: The file ended before a closing tag'
                         ' for {} after extra content: "{}".'
                         ''.format(
-                            self._stack_tagwords(),
+                            self._stack_tagNames(),
                             content,
                         )
                     )
@@ -314,7 +314,7 @@ class SGMLLexer(object):
                 #   -<https://stackoverflow.com/a/50872567/4541104>
                 self._chunkdef['attributes'] = OrderedDict()
                 attributes = self._chunkdef['attributes']
-                # prop_absstart = self._chunkdef['start']
+                # prop_abs_start = self._chunkdef['start']
                 props_start = find_whitespace(chunk, 0)
                 if props_start > -1:
                     self._chunkdef['tagName'] = chunk[1:props_start].strip()
@@ -362,7 +362,7 @@ class SGMLLexer(object):
                             "".format(
                                 self._chunkdef['tagName'],
                                 start,
-                                self._stack_tagwords(),
+                                self._stack_tagNames(),
                             )
                         )
                 elif self._chunkdef['tagName'] != self.stack[-1]['tagName']:
@@ -372,7 +372,7 @@ class SGMLLexer(object):
                             "".format(
                                 self._chunkdef['tagName'],
                                 start,
-                                self._stack_tagwords(),
+                                self._stack_tagNames(),
                             )
                         )
                 else:
@@ -393,11 +393,11 @@ class SGMLLexer(object):
             #             "Non-blank content in Scribus file")
         return self._chunkdef
 
-    def _stack_tagwords(self):
-        """Get a list of the current tagwords that are still open.
+    def _stack_tagNames(self):
+        """Get a list of the current tagNames that are still open.
 
         Returns:
-            list: tagword strings from innermost to outermost.
+            list: tagName strings from innermost to outermost.
         """
         results = []
         for i in reversed(range(0, len(self.stack))):
@@ -504,7 +504,7 @@ class ScribusPage(object):
         return (wide, narrow)
 
     def left_and_right_children(self, narrow_children):
-        """Separate left and right column objects by centerx of each.
+        """Separate left and right column objects by center_x of each.
 
         Only use this for narrow_children, otherwise assume that there is
         only one column.
@@ -515,11 +515,11 @@ class ScribusPage(object):
                 has children that are the size of a column.
         """
         half_w = self.safe_width() // 2
-        centerx = int(self.document.attributes['BORDERLEFT']) + half_w
+        center_x = int(self.document.attributes['BORDERLEFT']) + half_w
         left = []
         right = []
         for child in narrow_children:
-            if child.centerx < centerx:
+            if child.center_x < center_x:
                 left.append(child)
             else:
                 right.append(child)
@@ -619,7 +619,7 @@ class ScribusPage(object):
         """
         for sub in self.children:
             # _dump_text_unsorted since children of PAGEOBJECT
-            #   (but not PAGEOBJECTS themselves) are in order of appearance(?)
+            #   (but not PAGEOBJECTs themselves) are in order of appearance(?)
             sub._dump_text_unsorted(
                 stream,
                 sub.parent,
@@ -958,8 +958,8 @@ class SGMLText(object):
                 date_str = ": " + dt.strftime("%Y-%d-%m %H:%M:%S")
             else:
                 raise FileNotFoundError("No such file: %s" % image)
-            image_noext, _ = os.path.splitext(os.path.basename(image))
-            image_name = image_noext.replace("_", " ").replace("-", " ")
+            image_no_ext, _ = os.path.splitext(os.path.basename(image))
+            image_name = image_no_ext.replace("_", " ").replace("-", " ")
             alt = "%s%s" % (image_name, date_str)
             stream.write("\n![%s](%s)\n" % (alt, image))
         elif value is not None:
@@ -1248,11 +1248,11 @@ class ScribusPageObject(SGMLNode):
         return self.xpos + self.width
 
     @property
-    def centerx(self):
+    def center_x(self):
         return self.xpos + self.width // 2
 
     @property
-    def centery(self):
+    def center_y(self):
         return self.ypos + self.height // 2
 
 
@@ -1345,11 +1345,11 @@ class ScribusDocRoot(SGMLElementTree):
             if not hasattr(sub, 'children'):
                 continue
             # if sub.tagName == "SCRIBUSUTF8NEW":
-            for subsub in sub.children:
-                if not hasattr(subsub, 'tagName'):
+            for sub_sub in sub.children:
+                if not hasattr(sub_sub, 'tagName'):
                     continue
-                if subsub.tagName == "DOCUMENT":
-                    return subsub
+                if sub_sub.tagName == "DOCUMENT":
+                    return sub_sub
         return None
 
     def get_title(self):

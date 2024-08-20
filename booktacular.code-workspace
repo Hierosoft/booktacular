@@ -4,5 +4,41 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"cSpell.words": [
+			"ANNAME",
+			"ANZPAGES",
+			"booktacular",
+			"BORDERBOTTOM",
+			"BORDERLEFT",
+			"BORDERRIGHT",
+			"BORDERTOP",
+			"chunkdef",
+			"CLIPEDIT",
+			"dumpslatext",
+			"dunder",
+			"FONTSIZE",
+			"FRAMEOBJECT",
+			"FRTYPE",
+			"Gustafson",
+			"hierosoft",
+			"ITEST",
+			"itext",
+			"lxml",
+			"MASTEROBJECT",
+			"meldq",
+			"meldsla",
+			"morescribus",
+			"PAGEHEIGHT",
+			"PAGEOBJECT",
+			"PAGEWIDTH",
+			"PFILE",
+			"Poikilos",
+			"pyscribus",
+			"Scribus",
+			"SCRIBUSUTF8NEW",
+			"xpos",
+			"ypos"
+		]
+	}
 }
