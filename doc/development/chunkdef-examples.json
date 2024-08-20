@@ -1,0 +1,72 @@
+[
+  {
+    "context": "start",
+    "end": 311746,
+    "properties": {
+      "AUTOTEXT": "0",
+      "BACKITEM": "-1",
+      "BASEOF": "0",
+      "BEXTRA": "0",
+      "CLIPEDIT": "0",
+      "COLGAP": "0",
+      "COLUMNS": "1",
+      "EXTRA": "0",
+      "FLOP": "0",
+      "FRTYPE": "0",
+      "HEIGHT": "35.7301647058921",
+      "ItemID": "1372050122",
+      "LAYER": "0",
+      "LOCALROT": "0",
+      "LOCALSCX": "1",
+      "LOCALSCY": "1",
+      "LOCALX": "0",
+      "LOCALY": "0",
+      "NEXTITEM": "-1",
+      "OwnPage": "77",
+      "PICART": "1",
+      "PLINEART": "1",
+      "PLTSHOW": "0",
+      "PTYPE": "4",
+      "PWIDTH": "1",
+      "RATIO": "1",
+      "REXTRA": "0",
+      "SCALETYPE": "1",
+      "TEXTRA": "0",
+      "VAlign": "0",
+      "WIDTH": "522",
+      "XPOS": "136.0008",
+      "YPOS": "32504.1264",
+      "copath": "M0 0 L522 0 L522 35.7302 L0 35.7302 L0 0 Z",
+      "gHeight": "0",
+      "gWidth": "0",
+      "gXpos": "608",
+      "gYpos": "17468.0672",
+      "path": "M0 0 L522 0 L522 35.7302 L0 35.7302 L0 0 Z",
+      "textPathFlipped": "0",
+      "textPathType": "0"
+    },
+    "start": 311122,
+    "tag": "PAGEOBJECT"
+  },
+  {
+    "context": "content",
+    "end": 311922,
+    "start": 311905
+  },
+  {
+    "context": "start",
+    "end": 312020,
+    "properties": {
+      "CH": " The party travels far to track down the new set of coordinates using the astrolabe."
+    },
+    "self-closing": "/",
+    "start": 311922,
+    "tag": "ITEXT"
+  },
+  {
+    "context": "end",
+    "end": 312080,
+    "start": 312068,
+    "tag": "StoryText"
+  },
+]

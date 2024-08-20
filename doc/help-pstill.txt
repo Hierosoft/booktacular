@@ -1,0 +1,235 @@
+PStill[tm] PDF Converter Linux V1.90.08-5 of 11. October 2019
+ (c) copyright by Frank Siegert
+
+See 'pstill-license' file for usage conditions and copyrights
+
+Usage: pstill [options] -o output.pdf input1 input2 input3...
+
+-F format 'letter','legal','a5','a4','a3'.'a2','a1','a0',...
+          (default is 'letter', use -w # and -h # for custom page formats:)
+-w #      sets the output page width in pts [612]
+-h #      sets the output page height in pts [792]
+-d #      sets the internal interpreter dpi accuracy [150]
+          alternatively use -d #/#/#, where the first # is the placement
+          accuracy, the second is the raster image dpi and the last # is the
+          b/w image dpi. Images will be recalculated to lower densities
+-a #      sets the output numerical accuracy (0-6) [2]
+-l #      sets the minimal allowed linewidth [0.0]
+-o file   sets the output file name [out.pdf]
+-c        turns on flate compression (PDF 1.2 feature)
+          when used as '-c -c' also turns on binary output
+          when used as '-c -c -c -c' also max. out the compression level
+-g        turns on get page size from job (if any)
+          For EPS sources BoundingBox is used, for PS/PDF the job page setup.
+          Use together with -M getPageBBox to prefer the PageBoundingBox
+          DSC comments instead of the actual PS page setup commands.
+-i        turns on include non-std fonts in output
+-r        turns on reverse page order in output
+-p        turns on include partial fonts in output
+-s        turns on include standard fonts in output,
+          This is a non-standard feature, use with caution
+-t        turns on mapping of PS transfer function to output
+-R #      rotate page in output (# must be 0,90,180 or 270 degrees)
+          0 degree also turns on' %Orientation: Landscape' check for Job
+-P        turn all text to paths (useful to generate font'less PDFs)
+-I        install PSFonts, initialize PStills font metrics & widths cache
+-T path   path to a directory where tmp files should be placed
+          Attention: Each running instance needs a unique temp dir!
+
+Output mode options to '-m' are:
+-m mode   set mode to either 'p' for PS or 'e' for EPS generation,
+          modes 'P' and 'E' include also fonts in the result
+-m Pdirect   PostScript direct output, write PS (fast mode, single input only)
+-m Prewrite  PostScript normalization, write PS (Prepress purpose)
+-m Erewrite  PostScript normalization, write EPS (Prepress purpose)
+-m Erewrite+ PostScript normalization, write EPS (Prepress purpose) + preview
+-m Edirect   no normalization, just write EPS (Prepress purpose)
+          Note: Prepress normalization is a separate license option for PStill
+                and not part of the standard distribution.
+
+More mode options to '-m' are:
+-m textout           also generate TXT output, parallel to PDF
+-m textoutdirect     generate only TXT output (input must be PDF!)
+-m imageoutdirect    generate only JPG, PNG or TIFF output
+-m info=pagenum      generate info output (source must be PDF!)
+-m info=pagesize     generate info output, use -M pdfpagerange=.. to define page
+-m structured        "structured" output mode, no PDF processing
+-m extractAIP        "AI private" extraction mode, no PDF processing
+                     source must be an Illustrator 'AI' file PDF-style.
+
+Control options to '-m' are:
+-m Xspot             turn on spot colors takeover into result
+-m Xoverprint        turn on overprinting takeover into result
+-m Xovptrans         turn on overprinting visible simulation in result
+-m XimgAsCMYK        turn on image rewriting RGB to CMYK
+-m Xmono2gray        turn on image rewriting S/W to halfton 4x4
+-m Xmono2gray=low    turn on image rewriting S/W to halfton 8x8
+-m Xlevel1eps        EPS output (PSRW mode) will use only PS Level 1
+-m XPDFA=INTENTNAME  turn on PDF/A-1b output, you can use 'RGB' as
+                     INTENTNAME for some reasonable defaults.
+-m XPDFACompat=#     set PDF/A-1b compat level (# = 7 - 9 for AA vers)
+-m XPDFX=INTENTNAME  turn on PDF/X output (default is PDF/X-3)
+-m XPDFXVERSION=1A   turn on PDF/X output Version 1a (needs XPDFX)
+-m XICCProfile=file  embed also this ICC color profile (needs XPDFX/A)
+-m Xusesrctransp     allows to process transparencies in PDF input
+-m Xsep2comp         turn on separation to composite (needs S2C module)
+                     S2C is a separate license option to PStill and not
+                     part of the standard distribution.
+
+-E pagenum set the target page for EPS generation (needs '-m e')
+-C        set the output color model to RGB (default is CMYK)
+-B        set the output color model to Gray (default is CMYK)
+          Note: Use RGB if colors appear too dark in Reader!
+-2        declare PostScript Level 2 compatibility
+-J #      set JPEG compression for output, # quality is 0..100 [best]
+          when defined as "#,p" output will be progressive JPEG
+-W        turn on embedding of fonts by recollecting and generating
+-S #      set logical start page number for PDF page numbering
+          also accepts complex numbering schemes, see documentation
+-f        allow empty pages in PDF (Default is empty pages are stripped)
+-Y        write calibrated colors (needs also option -C)
+-V ".."   Open: ActionFit, HideToolbar, HideMenubar, HideWindowUI, CenterWindow
+          also: PageTransition=#, where # is the effect between 0 (none) and 16
+-K        Do not use BaseEncoding but write differential encodings per font
+          Use this feature to submit (PDF) papers for later reprocessing
+-D        Autoconvert DVIPS TeX bitmap fonts (Type1 tex fonts must be installed)
+          Use this feature to make dvips generated PS input display better
+-Q        Do not use a document font if the same font (by name) is installed
+-N path   tell PStill where to find TTF master fonts (automatic on Win32)
+-O        Do not use the BBox of an EPS input but the page setting of PStill
+-k        Allow the interpreter to write to files (Warning: security risk!)
+-v        turn on verbose mode
+
+-M        Special control and security options:
+          default             equiv. to -2 -c -c -c -c -g -i -t -w 2000 -h 2000
+          defaultall          plus font regeneration and transparecy flattener
+          genTIFFCMYK         shortcut to create CMYK TIFF output
+          genTIFFRGB          shortcut to create RGB TIFF output
+          genJPEG             shortcut to create RGB JPEG output
+          genPNGA             shortcut to create RGBA PNG output
+          pagecontrol=script.sl define a script for processing
+          preconv             preprocess job before interpreter run (L3)
+          pdfpagerange=#START,#END (pdf transcoding, defines input ranges)
+          forcepdflevel=## (where ## is 12 to 17 for PDF1.2 - 1.7)
+          userpassword=abc    use encryption using this password
+          ownerpassword=abc   use encryption using this password
+          allowed=PLMCA       allow Print, LowRes-Print, Mod, Copy and/or Annot
+          lowstrength         use a 40 bit key instead of default 128 bit
+          inputupass=abc      decrypt PDF input using this user password
+          inputopass=abc      decrypt PDF input using this owner password
+          autorotate=yes      detects landscape input (by DSC comments)
+          pagesizes=individual  allow multiple page sizes in PDF output
+                              (Default is to use largest output page size)
+          suppress=ISFTBTCT   suppress Images/Stroke/Fill/Text/K-Txt/NK-Txt
+          cropbox=X1,Y1,X2,Y2 directy set /Cropbox (and /TrimBox) in PDF
+          regenfonts          regenerate subsetted fonts during RunTime
+          regenallfonts       regenerate all fonts from RunTime information
+                              Warning: Don't use when concating several jobs
+                              as otherwise Glyphs may be missing in the output
+                              since fonts are updated differently for each job.
+          optimizefonts       optimize fonts for smaller output size
+          useSrcUnicodeMap    take over Unicode char mapping infos from PDF src
+          genCMaps            generate identity CMaps for all fonts (toUnicode)
+          genCMapsUni         generate identity CMaps for fonts with uniXXX enc
+          removeNotDefs       omit show of .notdefs in result (e.g. as PDF/A req.)
+          withPDFAInfo        take over PDF-Info into PDF/A (default is to strip info)
+          noProxyText         don't generated selectable text for Type 3 fonts
+          noTextLayout        for text output don't try to keep layout
+          textEnc=UTF8        for text output use UTF-8 encoding
+          errorForEmptyFonts  handle missing TTFs (empty def.) as hard error
+          errorForMissingFonts  handle missing fonts as hard error
+          nbspaceReplace      replace nbspace with space in output encoding
+          bicubicResize       use bicubic resize for downsampling
+          gaussianResize=#.#  use gaussian resize for downsampling, #.# radius
+          smoothimage         apply a smoothing filter on scaled raster images
+          imgdefaultdpi=##    set dpi default for raster image input
+          inlineLimit=###     write images 'inlined' if below this size (w*h)
+          keepflate           (PSRW) Use flate compression in PS/EPS output
+          useTTFCache         Will keep LRU Truetype fonts in a cache (faster)
+          noAnnotations       Don't create annotations and outlines from pdfmark
+          rotatedFontsAsPaths Output text with rotated Font Matrix as paths
+          nocmyforblack       When 100% Black is used set CMY to 0% in output
+          keepsrccolor        Preserve source colors when processing PDF
+          dashedLinesAsFills  Rewrite dashed lines as fills
+          strokeAsFill        Rewrite all lines as fills
+          epsrgb              For EPS/PS output: write RGB colors (implies -C)
+          timeout=#sec#       Abort processing after # seconds
+          noJobPagesize       handle job page size as invalid
+          useHQPageSize       For PDF src - use fractional MediaBox size
+          forceSrcIsEPS       For PS src - force handling as EPS (BBox detect)
+          useSrcBoxes         Load PDF boxes from source PDF
+          useKeepBoxes        Takeover PDF boxes direct from source (1:1)
+                              (limits processing to first page of PDF)
+          pagescale=#.#,#,#   Scale output by X.X,Y.Y (1.0 leaves it unchanged)
+          pagetrans=#.#,#,#   Shift output by X.X,Y.Y (0.0 leaves it unchanged)
+          pagerotate=#.#      Rotate output by angle (0.0 leaves it unchanged)
+          pagesize=#.#,#.#    Hard set MediaBox
+          altFontConfig=path  Define alternate font directories
+          useBlockMem         Keep small images in memory during processing
+          imageFileCache=###  Define memory use before swapping images to disk
+          preserveJPEG        Keep original JPEG streams if possible
+                              (value defined in MByte)
+          transmode=#         Convert and remove PDF transparency, # can be
+                              0 (none), 1 (full page), 2 (selective), 3 (always)
+          transdpi=###        DPI resolution of flattened areas
+          transmem=###        Maximum memory used for flattening (in Mbyte)
+          transoptions=antialias  Turns on antialiasing for flattener
+          noSMasks            Flatten image smasks always
+          linearize           Linearize PDF output (module 'pdflin' needed)
+          extraSave           For Win PS jobs, perserve memory during processing
+          cleanupTemp         Erase temp directory after processing
+          noActionForPDFSource Do nothing for PDF src, just copy through
+          logOutput=path      Write log to file
+          detectGrays         finds 'gray' images as RGB/CMYK, rewrite to Gray
+          cmykprofile=path    use CMYK profile for color processing
+                              Non-Pro version assumes sRGB as RGB setting always
+          applyProfilesEarly  Use profiles for pdf preconversion
+          colorIntent=#        Use intent: 0 perceptual, 1 relative, 2 saturation,
+                               3 absolute - add 10 to value to activate BPC
+
+Note: Color management is not active in this version. Update to PStill Pro
+to activate full ICC profile based color conversion/management.
+
+Run pstill -I whenever new fonts are added to PSFonts!
+
+To install pstill:
+
+Set the PSTILL_PATH and (optional) PSTILL_LICENSE environment variables.
+PSTILL_PATH must point to the folder containing the PStill files.
+
+% cd ${PSTILL_PATH}/PSFonts
+% cp /usr/lib/X11/fonts/Type1/* .  (or run ../linkAllFonts.sh)
+% cd ..
+% ./pstill -I
+
+
+For PDF image output (-m imageoutdirect) these options are used differently:
+ -d # (DPI), -m XimgAsCMYK (output as CMYK for TIFF, default is RGB),
+ -J ## (JPEG, default is TIFF), -m Xusesrctransp (PNG/alpha, default TIFF/JPEG)
+
+
+How to use pstill (examples):
+
+Convert with manual default settings, set page size fix to a3:
+% pstill -2 -F a3 -v -c -c -c -c -g -i -p -t -o result.pdf input.ps
+
+Convert with default settings, get page size from job:
+% pstill -M default -o result.pdf input.ps
+
+Convert with extended defaults (use e.g. for MS Windows PS jobs), get page size
+from job:
+% pstill -M defaultall -o result.pdf input.ps
+
+Convert with extended defaults, keep spot colors and overprint settings, subset
+fonts, JPEG:
+% pstill -M defaultall -p -J 85 -m Xspot -m Xoverprint -o result.pdf input.ps
+
+Convert to PDF/A-1b:
+% pstill -M defaultall -s -p -m XPDFA=RGB -o result.pdf input.ps
+
+Instead of PostScript you can also supply PDF, JPEG and TIFF
+
+PStill Linux V1.90.08-5 of 11. October 2019
+
+writen and copyrighted by Frank M. Siegert, All rights reserved
+For further help refer to the documentation
