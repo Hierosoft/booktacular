@@ -135,12 +135,3 @@ def generate_map(waypoints_path):
         result.annotate(dat.Name, (dat.Longitude, dat.Latitude))
 
     plt.show()
-
-
-def main():
-    generate_map("Zah Yest - Waypoints - Potential Antediluvian Sites.csv")
-    return 0
-
-
-if __name__ == "__main__":
-    sys.exit(main())
