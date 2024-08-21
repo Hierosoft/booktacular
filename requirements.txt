@@ -1,2 +1,2 @@
 hierosoft @ git+https://github.com/Hierosoft/hierosoft@main
-pycodetool @ git+https://github.com/Poikilos/pycodetool@main
+pycodetool @ git+https://github.com/Hierosoft/pycodetool@main

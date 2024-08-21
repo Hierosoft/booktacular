@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
 This submodule is part of the booktacular module originally from
-<https://github.com/Hierosoft/thepathofresistance>.
+<https://github.com/Hierosoft/booktacular>.
 
 Author: Jake "Poikilos" Gustafson
 

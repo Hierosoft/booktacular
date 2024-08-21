@@ -7,24 +7,14 @@ import os
 # if sys.version_info.major < 3:
 #     versionedModule['urllib'] = 'urllib2'
 
-install_requires = []
-
-if os.path.isfile("requirements.txt"):
-    with open("requirements.txt", "r") as ins:
-        for _raw in ins:
-            line = _raw.strip()
-            if len(line) < 1:
-                continue
-            install_requires.append(line)
+install_requires = [
+    'hierosoft @ git+ssh://git@github.com/Hierosoft/hierosoft.git',
+    'pycodetool @ git+ssh://git@github.com/Hierosoft/pycodetool.git',
+]
 
 description = (
     "This set of tools is used to manage Scribus files and other source"
-    " files for writing books. The repo thepathofresistance will"
-    " contain all source files necessary to create the free version"
-    " of The Path of Resistance tabletop campaign book. Consider"
-    " crowdfunding the project using the links at zahyest.com"
-    " or buying the book, since doing so is known to be less expensive"
-    " than printing it at a store and possibly even yourself in color."
+    " files for writing books."
 )
 long_description = description
 if os.path.isfile("readme.md"):
@@ -32,7 +22,7 @@ if os.path.isfile("readme.md"):
         long_description = fh.read()
 
 setuptools.setup(
-    name='thepathofresistance',
+    name='booktacular',
     version='0.5.0',
     description=description,
     long_description=long_description,
@@ -46,7 +36,7 @@ setuptools.setup(
         'Topic :: Utilities',
     ],
     keywords=('tabletop rpg book scribus'),
-    url="https://github.com/Hierosoft/thepathofresistance",
+    url="https://github.com/Hierosoft/booktacular",
     author="Jake Gustafson",
     author_email='7557867+poikilos@users.noreply.github.com',
     # packages=setuptools.find_packages(),
