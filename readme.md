@@ -7,3 +7,4 @@
 
 ## Examples:
 - [e1p-character-sheet-for-pf2](https://github.com/Hierosoft/e1p-character-sheet-for-pf2)
+- See also: [scripts][scripts] folder.
