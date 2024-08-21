@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "booktacular"
+version = "0.5.0"
+description = "This set of tools is used to manage Scribus files and other source files for writing books."
+readme = { file = "readme.md", content-type = "text/markdown" }
+keywords = ["tabletop", "rpg", "book", "scribus"]
+authors = [
+    { name = "Jake Gustafson", email = "7557867+poikilos@users.noreply.github.com" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3",
+    "Operating System :: POSIX :: Linux",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Text Processing :: General",
+    "Topic :: Utilities",
+]
+dependencies = [
+    # "hierosoft @ git+https://github.com/Hierosoft/hierosoft.git@main",
+    # "pycodetool @ git+https://github.com/Hierosoft/pycodetool.git@master",
+    # leave out the branch to make URLs more uniform to avoid dependency conflicts with other projects:
+    "hierosoft @ git+https://github.com/Hierosoft/hierosoft.git",
+    "pycodetool @ git+https://github.com/Hierosoft/pycodetool.git",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+pull_images = "booktacular.pull_images:main"
+meldsla = "booktacular.meldsla:main"
+dumpslatext = "booktacular.dumpslatext:main"
+
+[project.urls]
+Homepage = "https://github.com/Hierosoft/booktacular"
+Issues = "https://github.com/Hierosoft/booktacular/issues"
+Repository = "https://github.com/Hierosoft/booktacular.git"
+
+[tool.setuptools]
+packages = ["booktacular"]
+# include-package-data = true  # true by default now
