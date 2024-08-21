@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
 '''
-meldsla
--------
+dumper
+------
 
 dump sla as text.
+
+Usage:
+# If you install booktacular you can do:
+sla-dump <file.sla>
 '''
 from __future__ import print_function
 import sys
@@ -40,7 +44,7 @@ def usage():
     echo0()
 
 
-def dumpslatext(src_path, dst_path, tmp_dir=None):
+def dump_sla_text(src_path, dst_path, tmp_dir=None):
     tmpdir = None
     name = os.path.split(src_path)[1]
     no_ext_name, new_dot_ext = os.path.splitext(name)
@@ -122,9 +126,9 @@ def main():
     if (sys.version_info.major >= 3) and (sys.version_info.minor >= 10):
         with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir:
             tmp_path = tmpdir.name
-            meldsla(paths, tmp_path)
+            meld_sla(paths, tmp_path)
     '''
-    dumpslatext(src_path, dst_path)
+    dump_sla_text(src_path, dst_path)
     return 0
 
 
@@ -149,9 +153,9 @@ def dump_book1_text():
     if (sys.version_info.major >= 3) and (sys.version_info.minor >= 10):
         with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir:
             tmp_path = tmpdir.name
-            meldsla(paths, tmp_path)
+            meld_sla(paths, tmp_path)
     '''
-    dumpslatext(src_path, dst_path)
+    dump_sla_text(src_path, dst_path)
     return 0
 
 

@@ -5,7 +5,7 @@ import re
 from find_booktacular import booktacular  # noqa: F401
 # ^ works for submodules since changes path
 
-from booktacular.morescribus.meldsla import main
+from booktacular.morescribus.compare import main
 
 if __name__ == '__main__':
     sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])

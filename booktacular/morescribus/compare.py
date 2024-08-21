@@ -1,11 +1,17 @@
 # -*- coding: utf-8 -*-
 '''
-meldsla
--------
+booktacular.morescribus.compare
+-------------------------------
 
 Compare two SLA (Scribus Project) files by only their text. The changes
 to the text-only temporary files being compared will not be written
 back to the original files.
+
+Usage:
+# Typically you would install booktacular and do:
+sla-meld <file1.sla> <file2.sla>
+# directly use it via
+# python3 compare.py <file1.sla> <file2.sla>
 '''
 from __future__ import print_function
 import sys
@@ -37,7 +43,7 @@ def usage():
     echo0()
 
 
-def meldsla(paths, tmp_path=None):
+def meld_sla(paths, tmp_path=None):
     tmpdir = None
     try:
         if tmp_path is None:
@@ -91,7 +97,7 @@ def main():
     if (sys.version_info.major >= 3) and (sys.version_info.minor >= 10):
         with tempfile.TemporaryDirectory(ignore_cleanup_errors=True) as tmpdir:
             tmp_path = tmpdir.name
-            meldsla(paths, tmp_path)
+            meld_sla(paths, tmp_path)
     '''
-    meldsla(paths)
+    meld_sla(paths)
     return 0
