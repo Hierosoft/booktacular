@@ -8,3 +8,7 @@
 ## Examples:
 - [e1p-character-sheet-for-pf2](https://github.com/Hierosoft/e1p-character-sheet-for-pf2)
 - See also: [scripts][scripts] folder.
+
+## Related Projects
+- [PrintableTabletopMappingKit](https://github.com/Hierosoft/PrintableTabletopMappingKit): Negative space drawing kit for Tiled Map Editor (3 layers, so you can simply draw the ground through the rock/wall and the grid will be uncovered; simple shapes are available too: symbolic benches, tables, circles for pillars, etc).
+- [tabletopManualMiner](https://github.com/Hierosoft/tabletopManualMiner): Convert the SRD 5 rules PDF to metadata.
