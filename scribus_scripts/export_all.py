@@ -10,7 +10,7 @@ scribus -g -ns -py step1.scribus.py
 import os
 import sys
 from datetime import datetime
-my_longname = "thepathofresistance export_all.py"
+my_longname = "booktacular export_all.py"
 '''
 HOME = None
 if platform.system() == "Windows":

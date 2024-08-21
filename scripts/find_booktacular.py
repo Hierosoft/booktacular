@@ -6,7 +6,7 @@ import os
 import platform
 
 REPO_USER = "Hierosoft"
-REPO_NAME = "thepathofresistance"
+REPO_NAME = "booktacular"
 MODULE_NAME = "booktacular"  # See also import booktacular statements
 
 GIT_SERVER= "https://github.com"
