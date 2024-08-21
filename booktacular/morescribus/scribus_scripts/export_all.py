@@ -27,7 +27,7 @@ except KeyError:
 
 # if not scribus.haveDoc():
 #     raise Exception("Error: No document.")
-# name_noext = os.path.splitext(scribus.getDocName())[0]
+# name_no_ext = os.path.splitext(scribus.getDocName())[0]
 # ^ only raise or open if a document file arg was expected to be sent to
 #   scribus
 def echo0(*args):

@@ -3,7 +3,9 @@
 - Edit Scribus sla project files.
 - Make fillable SVG files such as from character sheet JSON files.
 - Automate Scribus.
-- Automate PDF utilities to make publishable documents and books.
+- Automate PDF utilities to make publishable documents and books, and update book cover images for the web:
+  - pstill
+  - pdftoppm
 
 
 ## Examples:

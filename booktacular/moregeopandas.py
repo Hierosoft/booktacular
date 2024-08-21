@@ -8,7 +8,7 @@ such as the Arrow string type, and better interoperability with other
 libraries)"
 -pandas
 '''
-import sys
+# import sys
 import logging
 
 # from collections import OrderedDict

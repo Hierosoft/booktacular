@@ -30,7 +30,7 @@ def make_md_index(parent, name="readme.md", extensions=image_extensions):
             (case insensitive) is most commonly the name of the file
             loaded automatically as the index when a folder is opened
             (such as on the GitHub web interface and when using
-            vuepress).
+            VuePress).
 
     Returns:
         int: The number of images found.
@@ -47,10 +47,10 @@ def make_md_index(parent, name="readme.md", extensions=image_extensions):
         subPath = os.path.join(parent, sub)
         if not os.path.isfile(subPath):
             continue
-        noext, ext = os.path.splitext(sub)
+        no_ext, ext = os.path.splitext(sub)
         if ext.lower() not in image_dot_exts:
             continue
-        line = "![{}]({})".format(noext, sub)
+        line = "![{}]({})".format(no_ext, sub)
         lines.append(line)
         images_count += 1
     old_lines = []

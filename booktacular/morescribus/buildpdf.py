@@ -41,7 +41,8 @@ from scribus_scripts.export_all import (
 )
 
 PREFLIGHT_MSG = '''
-Preflight conversion is not implemented. It may be necessary to add PFA and PFB fonts to
+Preflight conversion is not implemented. It may be necessary to add PFA
+and PFB fonts to
 ~/.local/lib/pstill
 # ^ recommended by publisher support
 then re-run cd ~/.local/lib/pstill && ./linkAllFonts.sh
@@ -55,7 +56,8 @@ on Poikilos' dev machine.
 # -v: verbose (helped diagnose "Base font 'Courier' missing,
 #           turn on option -v for details"
 # -H: help
-# -d: dpi "interpreter dpi accuracy" or -d placement_accuracy/raster_image_dpi/bw_image_dpi
+# -d: dpi "interpreter dpi accuracy" or
+#     -d placement_accuracy/raster_image_dpi/bw_image_dpi
 # -c        turns on flate compression (PDF 1.2 feature)
 #           when used as '-c -c' also turns on binary output
 #           when used as '-c -c -c -c' also max. out the compression level
@@ -76,7 +78,7 @@ on Poikilos' dev machine.
 # -S #      set logical start page number for PDF page numbering
 # -f        allow empty pages in PDF (Default is empty pages are stripped)
 # -Y        write calibrated colors (needs also option -C)
-# -M defaultall         default plus font regeneration and transparecy
+# -M defaultall         default plus font regeneration and transparency
 #                       flattener [sic]
 #    (-M has many other subcommands)
 # transmode (flatten) options:
@@ -89,7 +91,7 @@ on Poikilos' dev machine.
 #  or ~/.local/lib/pstill/pstill64 -H):
 # -M transdpi=density_in_dpi
 # -M transoptions=antialias
-# -2 postcript level 2 compatibility. This is not recommended
+# -2 postscript level 2 compatibility. This is not recommended
 #    "Any applications and tools that can only process PostScript Level
 #    1or Level 2 should now be regarded as obsolete and upgraded, since
 #    it is extremely unlikely that they can be configured to render
@@ -134,8 +136,8 @@ def which(name):
     paths.insert(0, os.getcwd())
     paths.insert(0, os.path.dirname(os.path.realpath(__file__)))
     suffixes = [""]
-    noExt, dotExt = os.path.splitext(name)
-    if platform.system() == "Windows" and dotExt == "":
+    no_ext, dot_ext = os.path.splitext(name)
+    if platform.system() == "Windows" and dot_ext == "":
         suffixes = [".exe", ".bat", ".com", ".py"]
     for suffix in suffixes:
         filename = name + suffix
@@ -220,7 +222,7 @@ def preflight_fix(src, dst, dpi="300", more_mode_options=None):
         #   -2 -c -c -c -c -g -i -t -w 2000 -h 2000
         #   -w and -h: set page dimensions in pts (1/72 in)
         "-M", "defaultall",  # recommended by pstill author
-        # ^ default plus font regeneration and transparecy flattener
+        # ^ default plus font regeneration and transparency flattener
         # ^ ok since even works with -P (-P invalidates -i -t) conv. to paths
         # "-M", "pdfpagerange=1,10",
         # "-P",  # outline all fonts! "turn all text to paths...font'less"
@@ -228,7 +230,7 @@ def preflight_fix(src, dst, dpi="300", more_mode_options=None):
         #   excluding proxy text (which is for extractable text) should
         #   prevent the missing Times-Roman error on DriveThruRPG
         # -d (generated from dpi below)
-        "-M", "noProxyText",  # turn off extractactable text (prevents missing
+        "-M", "noProxyText",  # turn off extractable text (prevents missing
         #   Times-Roman error ok since non-pstill version)
         # TODO: ^ See if new options work with Barnes&Noble, otherwise add -P
         "-M", "keepPDFBoxes",
@@ -270,7 +272,7 @@ def preflight_fix(src, dst, dpi="300", more_mode_options=None):
     # See PREFLIGHT_MSG above for comments on each option used.
     # The following should match
     #   ~/Nextcloud/Tabletop/Pathfinder/projects/combine-pages.sh:
-    # noext, dotext = os.path.splitext(src)
+    # no_ext, dot_ext = os.path.splitext(src)
     cmd_parts_old = [
         PSTILL_PATH,
         "-o", dst,
@@ -355,8 +357,8 @@ def preflight_fix(src, dst, dpi="300", more_mode_options=None):
 
     # lines = out.split(b'\n')
     dst_dir, dst_name = os.path.split(os.path.realpath(dst))
-    dst_noext, _ = os.path.splitext(dst_name)
-    log_name = "converted-{}.log".format(dst_noext)
+    dst_no_ext, _ = os.path.splitext(dst_name)
+    log_name = "converted-{}.log".format(dst_no_ext)
     log_path = os.path.join(dst_dir, log_name)
     log_mode = "wb"
     echo0(prefix + 'showing output (and saving to "{}")'.format(log_path))
@@ -444,8 +446,8 @@ def export_web_and_ad_cover_images(path, dst_path, page=1):
     # Version with words (for website & store(s) thumbnail)
     dpi = 100
     dst_dir = os.path.dirname(dst_path)
-    dst_path_noext, dotext = os.path.splitext(dst_path)
-    if dotext.lower() != ".jpg":
+    dst_path_no_ext, dot_ext = os.path.splitext(dst_path)
+    if dot_ext.lower() != ".jpg":
         raise ValueError("The destination must be jpg.")
     # tmp_name = "cover"  # has a tmp name since 1 will get added anyway,
     # so it must be renamed anyway.
@@ -595,12 +597,12 @@ def export_pdfs(options={}):
     echo0("\n" + prefix + "Running pre-flight operations...")
     ex_path = EXPORT_FORMATS['print']['destination']
     # TODO: Check bleeds with ['pdfinfo', '-box', ex_path]
-    noext, dotext = os.path.splitext(ex_path)
+    no_ext, dot_ext = os.path.splitext(ex_path)
 
     if options.get('preflight'):
         code = preflight_fix(
             ex_path,
-            noext + "-PDF_X-1a" + dotext,
+            no_ext + "-PDF_X-1a" + dot_ext,
             dpi=EXPORT_FORMATS['print']['resolution']
         )
     if code != 0:
@@ -620,9 +622,9 @@ def main():
         'preflight': True,
     }
     exist_action = "skipping"
-    for argi in range(1, len(sys.argv)):
+    for arg_i in range(1, len(sys.argv)):
         # ^ 1 to skip 0 (this script)
-        arg = sys.argv[argi]
+        arg = sys.argv[arg_i]
         if arg == "--force":
             options['force'] = True
             exist_action = "overwriting"
