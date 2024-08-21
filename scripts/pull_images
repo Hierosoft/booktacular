@@ -2,10 +2,10 @@
 import sys
 import re
 
-from find_booktacular import booktacular
+from find_booktacular import booktacular  # noqa: F401
 # ^ works for submodules since changes path
 
-from booktacular.pull_images import main
+from booktacular.morescribus.bundle import main
 
 if __name__ == '__main__':
     sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])

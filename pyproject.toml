@@ -31,9 +31,12 @@ dependencies = [
 dev = ["pytest"]
 
 [project.scripts]
-pull_images = "booktacular.pull_images:main"
-meldsla = "booktacular.meldsla:main"
-dumpslatext = "booktacular.dumpslatext:main"
+sla-bundle = "booktacular.morescribus.bundle:main"
+# ^ formerly pull_images
+sla-meld = "booktacular.morescribus.compare:main"
+# ^ formerly meldsla
+sla-dump = "booktacular.morescribus.dumper:main"
+# ^ formerly dumpslatext
 
 [project.urls]
 Homepage = "https://github.com/Hierosoft/booktacular"
