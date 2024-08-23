@@ -28,7 +28,10 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = [
+    "pytest",
+    "pf2sheets @ git+https://github.com/Hierosoft/e1p-character-sheet-for-pf2.git",
+]
 
 [project.scripts]
 sla-bundle = "booktacular.morescribus.bundle:main"

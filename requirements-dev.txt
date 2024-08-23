@@ -1,0 +1,2 @@
+pytest
+pf2sheets @ git+https://github.com/Hierosoft/e1p-character-sheet-for-pf2.git
