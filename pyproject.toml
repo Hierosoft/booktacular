@@ -30,7 +30,8 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "pytest",
-    "pf2sheets @ git+https://github.com/Hierosoft/e1p-character-sheet-for-pf2.git",
+    # "pf2sheets @ git+https://github.com/Hierosoft/e1p-character-sheet-for-pf2.git",
+    # ^ e1p-character-sheet-for-pf2 should be downstream, so pick some other test data.
 ]
 
 [project.scripts]

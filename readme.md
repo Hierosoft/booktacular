@@ -8,11 +8,11 @@
   - pdftoppm
 
 
-## Examples:
+## Examples
+- [scripts][scripts] folder.
+- [release.py](release.py)
 - Hierosoft [e1p-character-sheet-for-pf2](https://github.com/Hierosoft/e1p-character-sheet-for-pf2): Efficient 1-Page Character Sheet for PF2 (Python-fillable form is pre-alpha)
-- See also:
-  - [scripts][scripts] folder.
-  - [release.py](release.py)
+
 
 
 ## Related Projects
