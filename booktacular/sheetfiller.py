@@ -42,14 +42,14 @@ class BooktacularSheet:
         self._path = None
 
     def load(path):
-        pass
+        raise NotImplementedError("load")
 
     def setValueById(self, name, value):
-        pass
+        raise NotImplementedError("setValueById")
 
     def save(self, path=None):
         if path is None:
             path = self._path
         if not path:
             raise RuntimeError("path was neither loaded nor set manually.")
-
+        raise NotImplementedError("save")

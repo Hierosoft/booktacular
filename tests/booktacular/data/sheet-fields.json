@@ -1,0 +1,10 @@
+{
+    "fillable-fields": {
+        "armor_class_": {},
+        "character_name_": {}
+    },
+    "fill-and-delete-fields": {
+        "armor_class_": {},
+        "character_name_": {"deletes": "character_name_line_"}
+    }
+}

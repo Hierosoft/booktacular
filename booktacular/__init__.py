@@ -52,3 +52,18 @@ def find_any(haystack, needles):
         if (result == -1) or (i > -1 and i < result):
             result = i
     return result
+
+
+def querydict(d, q):
+    # based on <https://stackoverflow.com/a/7320730/4541104>
+    # MarcoS. Sep 6, 2011. Accessed Aug 23, 2024.
+    keys = q.split('/')
+    nd = d
+    for  k  in  keys:
+        if  k == '':
+            continue
+        if  k  in  nd:
+            nd = nd[k]
+        else:
+            return  None
+    return  nd
