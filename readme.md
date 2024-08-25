@@ -9,7 +9,7 @@
 
 
 ## Examples
-- [scripts][scripts] folder
+- [scripts](scripts) folder
 - [release.py](release.py)
 - [booktacular/sheetfiller.py](booktacular/sheetfiller.py)\
   ![Character Sheet Filled](screenshot-sheetfiller.png)
