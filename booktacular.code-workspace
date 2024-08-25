@@ -65,6 +65,7 @@
 			"Poikilos",
 			"pstill",
 			"pyarrow",
+			"pyinkscape",
 			"pyscribus",
 			"rightbleedsize",
 			"Scribus",
@@ -87,6 +88,9 @@
 			"xpos",
 			"ypos",
 			"zahyest"
+		],
+		"python.analysis.extraPaths": [
+			"~/git/pyinkscape"
 		]
 	}
 }
