@@ -10,7 +10,6 @@
 
 ## Examples
 - [scripts](scripts) folder
-- [release.py](release.py)
 - [booktacular/sheetfiller.py](booktacular/sheetfiller.py)\
   ![Character Sheet Filled](screenshot-sheetfiller.png)
 - Hierosoft [e1p-character-sheet-for-pf2](https://github.com/Hierosoft/e1p-character-sheet-for-pf2): Efficient 1-Page Character Sheet for PF2 (Python-fillable form is pre-alpha)
