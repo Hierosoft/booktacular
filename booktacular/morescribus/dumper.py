@@ -14,7 +14,6 @@ import sys
 import os
 import tempfile
 import shutil
-from pprint import pformat
 
 from booktacular.find_hierosoft import hierosoft  # noqa: F401
 # ^ also works for submodules since changes sys.path
@@ -71,9 +70,9 @@ def dump_sla_text(src_path, dst_path, tmp_dir=None):
             # project.root.dump_text_unsorted(stream)
             project.root.dump_text(stream)
         if os.path.isfile(dst_path):
-            print("* removing old %s" % pformat(dst_path))
+            print("* removing old %s" % repr(dst_path))
             os.remove(dst_path)
-        print("* saving to %s" % pformat(dst_path))
+        print("* saving to %s" % repr(dst_path))
         shutil.move(tmp_path, dst_path)
         # echo0("Writing json...")
         # json_name = "{}.json".format(no_ext_name)
@@ -107,13 +106,13 @@ def main():
         if not os.path.isfile(sys.argv[1]):
             raise FileNotFoundError(sys.argv[1])
     elif os.path.isfile(try_file):
-        print("* using detected %s" % pformat(try_file))
+        print("* using detected %s" % repr(try_file))
         src_path = try_file
     if src_path is None:
         raise FileNotFoundError(
             "You must have %s (normal if running from repo)"
             " or specify an sla file."
-            "" % pformat(try_file)
+            "" % repr(try_file)
         )
     if len(sys.argv) > 2:
         dst_path = sys.argv[2]
@@ -142,7 +141,7 @@ def dump_book1_text():
         raise FileNotFoundError(
             "You must have %s (normal if running from repo)"
             " or specify an sla file."
-            "" % pformat(try_file)
+            "" % repr(try_file)
         )
     src_path = try_file
     dst_dir, name = os.path.split(src_path)

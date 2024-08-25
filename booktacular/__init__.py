@@ -1,11 +1,49 @@
 # -*- coding: utf-8 -*-
+from __future__ import annotations  # Union[ and possibly others
+from typing import Union, Generator
+
 import os
 # import sys
 import logging
+
 logger = logging.getLogger(__name__)
 
 MODULE_DIR = os.path.dirname(__file__)
 REPO_DIR = os.path.dirname(MODULE_DIR)
+
+
+class PairsTypeError(TypeError):
+    pass
+
+
+def emit_cast(value):
+    # formerly typed_name
+    return "{}({})".format(type(value).__name__, repr(value))
+
+
+def pairs(data: Union[list, dict]) -> Generator:
+    """Generate key-value pairs from a list or dictionary.
+
+    Args:
+        data (Union[list, dict]): The input data, which must be a list or dictionary.
+
+    Yields:
+        tuple: A tuple containing the key (or index) and the corresponding value.
+
+    Raises:
+        TypeError: If the input data is not a list or dictionary.
+    """
+    if isinstance(data, list):
+        yield from enumerate(data)
+    elif isinstance(data, dict):
+        yield from data.items()
+    else:
+        raise PairsTypeError(
+            "Only dict or list is allowed, but got {}"
+            .format(emit_cast(data)))
+    # ok to get here after yield finishes, apparently
+    # logger.warning(
+    #     "[pairs] dumping after no yield {}".format(emit_cast(data)))
 
 
 def endswith_any(haystack, needles):
@@ -57,6 +95,9 @@ def find_any(haystack, needles):
 def querydict(d, q):
     # based on <https://stackoverflow.com/a/7320730/4541104>
     # MarcoS. Sep 6, 2011. Accessed Aug 23, 2024.
+    if not isinstance(q, str):
+        raise TypeError("query path must be str but got {}"
+                        .format(emit_cast(q)))
     keys = q.split('/')
     nd = d
     for  k  in  keys:
@@ -67,3 +108,36 @@ def querydict(d, q):
         else:
             return  None
     return  nd
+
+
+def get_all_queries(d, parent=""):
+    queries = []
+    if isinstance(d, (list, dict)):
+        for k, v in pairs(d):
+            if isinstance(v, (list, dict)):
+                if not v:
+                    # empty list or dict, so recursion would show
+                    #   nothing. therefore treat this as a leaf, so user
+                    #   can get set or get [] or {}.
+                    queries.append("{}/{}".format(parent, k))
+                else:
+                    queries += get_all_queries(v, "{}/{}".format(parent, k))
+            else:
+                queries.append("{}/{}".format(parent, k))
+    else:
+        raise RecursionError(
+            "Cannot determine path since got value without key(s): {}"
+            .format(d))
+    return queries
+
+
+def key_of_value(d, value):
+    keys = {k for k in d if d[k]==value}  # gets a set()
+    key = keys.pop()
+    if keys:
+        raise ValueError(
+            "More than one key ({}) has value {}"
+            .format(repr(set(key).union(keys)),
+                    repr(value))
+        )
+    return key

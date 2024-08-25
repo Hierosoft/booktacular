@@ -3,16 +3,18 @@
 - Edit Scribus sla project files.
 - Make fillable SVG files such as from character sheet JSON files.
 - Automate Scribus.
-- Automate PDF utilities to make publishable documents and books, and update book cover images for the web:
-  - pstill
-  - pdftoppm
+- Automate PDF utilities to make publishable documents and books
+  - pstill: convert to old PDX X/1-a format required by major print-on-demand publishers.
+  - pdftoppm: Update book cover images at website resolution automatically from a high-dpi book cover.
 
 
 ## Examples
-- [scripts][scripts] folder.
+- [scripts][scripts] folder
 - [release.py](release.py)
+- [booktacular/sheetfiller.py](booktacular/sheetfiller.py)
 - Hierosoft [e1p-character-sheet-for-pf2](https://github.com/Hierosoft/e1p-character-sheet-for-pf2): Efficient 1-Page Character Sheet for PF2 (Python-fillable form is pre-alpha)
 
+![Character Sheet Filled](screenshot-sheetfiller.png)
 
 
 ## Related Projects

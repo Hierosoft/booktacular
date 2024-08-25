@@ -1,2 +1,3 @@
-hierosoft @ git+https://github.com/Hierosoft/hierosoft@main
-pycodetool @ git+https://github.com/Hierosoft/pycodetool@main
+git+https://github.com/Hierosoft/hierosoft
+git+https://github.com/Hierosoft/pycodetool
+git+https://github.com/Hierosoft/pyinkscape

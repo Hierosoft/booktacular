@@ -163,3 +163,5 @@ cython_debug/
 
 # booktacular-specific
 /e1p-character-sheet-for-pf2
+/tests/booktacular/data/demo_sheet.FILLED.svg
+/tests/booktacular/data/demo_sheet.MODIFIED.svg

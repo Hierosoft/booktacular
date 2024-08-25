@@ -45,7 +45,6 @@ import copy
 
 from collections import OrderedDict
 from datetime import datetime
-from pprint import pformat
 
 if __name__ == "__main__":
     sys.path.insert(
@@ -128,7 +127,7 @@ class SGMLLexer(object):
             skip_blank = False
         elif skip_blank not in [True, False]:
             raise ValueError("skip_blank=%s (expected True or False)"
-                             % pformat(skip_blank))
+                             % repr(skip_blank))
         self.skip_blank = skip_blank
         self._data = data
         self._chunkdef = None
@@ -711,8 +710,8 @@ class SGMLText(object):
                 raise NotImplementedError(
                     "uh oh %s(%s) != %s(%s)"
                     % (type(self_value_bytes).__name__,
-                       pformat(self_value_bytes),
-                       type(value).__name__, pformat(value))
+                       repr(self_value_bytes),
+                       type(value).__name__, repr(value))
                 )
 
         return self_value_bytes.startswith(value)
@@ -1031,7 +1030,7 @@ class SGMLText(object):
                             "\n  (this=%s)"
                             "\n  (previous=%s)"
                             % (
-                                pformat(
+                                repr(
                                     next_child.get_value(attribute=attribute)
                                 ),
                                 next_child.to_dict(),
@@ -1378,7 +1377,7 @@ class ScribusDocRoot(SGMLElementTree):
         for key in self._pages.keys():
             if not isinstance(key, int):
                 raise KeyError("Expected int for page key, got %s(%s)"
-                               % (type(key).__name__, pformat(key)))
+                               % (type(key).__name__, repr(key)))
             index = key
             if first is None or index < first:
                 first = index
@@ -1417,7 +1416,7 @@ class ScribusDocRoot(SGMLElementTree):
             page = self._pages.get(index)
             if page is None:
                 echo1("Blank page %s+1=%s (not in %s)"
-                      % (pformat(index), index + 1,
+                      % (repr(index), index + 1,
                          list(sorted(self._pages.keys()))))
                 # There is no PAGEOBJECT/other visible on this page.
                 continue

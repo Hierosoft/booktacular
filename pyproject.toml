@@ -23,8 +23,9 @@ dependencies = [
     # "hierosoft @ git+https://github.com/Hierosoft/hierosoft.git@main",
     # "pycodetool @ git+https://github.com/Hierosoft/pycodetool.git@master",
     # leave out the branch to make URLs more uniform to avoid dependency conflicts with other projects:
-    "hierosoft @ git+https://github.com/Hierosoft/hierosoft.git",
-    "pycodetool @ git+https://github.com/Hierosoft/pycodetool.git",
+    "hierosoft @ git+https://github.com/Hierosoft/hierosoft",
+    "pycodetool @ git+https://github.com/Hierosoft/pycodetool",
+    "pyinkscape @ git+https://github.com/Hierosoft/pyinkscape",
 ]
 
 [project.optional-dependencies]
