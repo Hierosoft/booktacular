@@ -3,7 +3,7 @@
 - Edit Scribus sla project files.
 - Make fillable SVG files such as from character sheet JSON files.
 - Automate Scribus.
-- Automate PDF utilities to make publishable documents and books
+- Automate PDF utilities to make publishable documents and books:
   - pstill: convert to old PDX X/1-a format required by major print-on-demand publishers.
   - pdftoppm: Update book cover images at website resolution automatically from a high-dpi book cover.
 
