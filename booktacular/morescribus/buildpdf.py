@@ -105,8 +105,8 @@ usually:
 PSTILL=pstill
 $PSTILL -o ~/Tabletop/ThePathOfResistance-more/snapshots/The_Path_of_Resistance-2023-07-26-300dpi-inner3-167-PDF_X-1a.pdf \
     -v -d 300/300/300 -c -c -c -c -m XPDFXVERSION=1A -m Xoverprint \
-    -M transmode=2 -C -J 100 -W -f -N /home/owner/.local/share/fonts \
-    /home/owner/Tabletop/ThePathOfResistance-more/snapshots/The_Path_of_Resistance-2023-07-26-300dpi-inner3-167.pdf
+    -M transmode=2 -C -J 100 -W -f -N ~/.local/share/fonts \
+    ~/Tabletop/ThePathOfResistance-more/snapshots/The_Path_of_Resistance-2023-07-26-300dpi-inner3-167.pdf
 """
 
 print("sys.version_info: {}".format(sys.version_info))

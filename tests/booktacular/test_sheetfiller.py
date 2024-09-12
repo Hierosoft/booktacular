@@ -1,8 +1,9 @@
 import json
 import os
 import pytest
+import sys
 
-from booktacular import querydict, key_of_value
+from booktacular import query_dict, key_of_value
 from booktacular.btpb2 import mappings
 from booktacular.sheetfiller import BooktacularSheet
 
@@ -53,7 +54,7 @@ def filled_svg_file(request, load_data):
     sheet.set_values(source)
 
     # for src, dst in mappings.items():
-    #     value = querydict(meta, src)
+    #     value = query_dict(meta, src)
     #     sheet.setValueById(dst, value)
 
     no_ext, _ = os.path.splitext(template_path)
@@ -61,11 +62,19 @@ def filled_svg_file(request, load_data):
 
     # Save the filled SVG
     sheet.save(filled_path, overwrite=True)
+    if os.path.isfile(filled_path):
+        print("Saved \"{}\"".format(filled_path),
+              file=sys.stderr)
+    else:
+        assert os.path.isfile(filled_path)
 
     # Register finalizer to remove the file
     def cleanup():
         if os.path.isfile(filled_path):
-            os.remove(filled_path)
+            pass
+            print("Removing \"{}\"".format(filled_path),
+                  file=sys.stderr)
+            # os.remove(filled_path)
 
     request.addfinalizer(cleanup)
 
@@ -84,7 +93,7 @@ def test_filled_svg_creation(filled_svg_file, load_data):
     xpath = key_of_value(mappings, "armor_class_")
     good_p = "/build/acTotal/acTotal"
     assert xpath == good_p, "key_of_value({}) {} != {}".format("armor_class_", xpath, good_p)
-    src_v = querydict(source, xpath)
+    src_v = query_dict(source, xpath)
     nur_ac = 17
     # Has to be converted to str during set_values
     #   to prevent TypeError in serialization in xml

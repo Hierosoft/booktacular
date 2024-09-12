@@ -8,17 +8,13 @@ from pyinkscape import (
     Canvas,
 )
 
-from pyinkscape.inkscape import (
-    used_elements,
-)
-
 if __name__ == "__main__":
     MODULE_DIR = os.path.dirname(os.path.realpath(__file__))
     sys.path.insert(0, os.path.dirname(MODULE_DIR))
 
 from booktacular import (
     get_all_queries,
-    querydict,
+    query_dict,
 )
 
 logger = getLogger(__name__)
@@ -80,6 +76,11 @@ class BooktacularSheet:
             source (dict): Character data, such as representing a JSON
                 file exported by PB2e
         """
+        if not hasattr(self._doc, "setField"):
+            raise TypeError(
+                "_doc is {} but expected Hierosoft fork of"
+                " pyinkscape.Canvas (missing .setField)"
+                .format(type(self._doc)))
         results = {
             "missing_source_fields": [],
             "missing_template_fields": [],
@@ -97,51 +98,33 @@ class BooktacularSheet:
             logger.warning("Destination fields with no source field: {}"
                            .format(no_src_key))
         for xpath, field in self._mappings.items():
-            new = querydict(source, xpath)
+            new = query_dict(source, xpath)
             if new is None:
                 results['missing_source_fields'].append(xpath)
                 msg = "data source is missing {}".format(xpath)
                 logger.warning(msg)
                 continue
-            leaves = self._doc.getLeavesById(
-                field, "text", "tspan", only_placeholders=False)
+            # leaves = self._doc.setField(
+            #     field, "text", "tspan", skip_empty=False)
             # ^ FIXME: For some reason not all placeholders are
-            #   detected, so only_placeholders=False is
+            #   detected, so skip_empty=False is
             #   necessary. Therefore, set value on
             #   first non-empty one below.
-            if not leaves:
+            # if not leaves:
+            if not self._doc.setField(field, str(new)):
                 results['missing_template_fields'].append(xpath)
                 msg = ("sheet is missing text or group"
                        " with id={} containing a tspan"
                        .format(repr(xpath)))
                 logger.warning(msg)
-            count = 0
-            for leaf in leaves:
-                if leaf.text:
-                    leaf.text = str(new)
-                    new = ""  # clear all others
-                else:
-                    leaf.text = ""
-                # ^ FIXME: report xml issue to Python team??:
-                #   - if int, works now but raises TypeError on save
-                #     when trying to do `if "&" in text:` in _escape_cdata
-                #     method in xml/etree/ElementTree.py 3.8.19
-                # ^ prevents odd transformations of same text caused by
-                #   Inkscape generating multiple text tags for same
-                #   text.
-                count += 1
-            if count > 1:
-                logger.warning("blanked {} extra copies of {}"
-                               .format(count-1, field))
-            else:
-                logger.warning("blanked no extra copies of {}"
-                               .format(field))
+                continue
+            used_dst_keys.add(field)
         return results
 
     def getContent(self, ID):
         # formerly getValueById
         leaves = self._doc.getLeavesById(
-            ID, "text", "tspan", only_placeholders=True)
+            ID, "text", "tspan", skip_empty=True)
         if not leaves:
             return None
         if len(leaves) > 1:
@@ -157,7 +140,7 @@ class BooktacularSheet:
         # # get a layer by ID
         # layer1 = self._doc.layer_by_id("layer1")
         elements = self._doc.getLeavesById(
-            ID, "text", "tspan", only_placeholders=True)
+            ID, "text", "tspan", skip_empty=True)
         if len(elements) < 1:
             raise ValueError("{} is missing id {}".format(self._path, ID))
         elif len(elements) != 1:
@@ -169,9 +152,9 @@ class BooktacularSheet:
 
     def setValueById(self, key, value):
         leaves = self._doc.getLeavesById(
-            key, "text", "tspan", only_placeholders=False)
+            key, "text", "tspan", skip_empty=False)
         # ^ FIXME: For some reason not all placeholders are
-        #   detected, so only_placeholders=False is
+        #   detected, so skip_empty=False is
         #   necessary.
         if not leaves:
             logger.warning("Missing {}".format(key))
@@ -199,7 +182,6 @@ class BooktacularSheet:
             raise RuntimeError("path was neither loaded nor set manually.")
 
         return self._doc.render(path, overwrite=overwrite)
-
 
 
 def main():

@@ -5,7 +5,16 @@
 		}
 	],
 	"settings": {
+		"python.testing.pytestArgs": [
+			"tests"
+		],
+		"python.testing.unittestEnabled": false,
+		"python.testing.pytestEnabled": true,
+		"python.analysis.include": [
+			"~/git/pyinkscape"
+		],
 		"cSpell.words": [
+			"addfinalizer",
 			"ANNAME",
 			"ANZPAGES",
 			"bleedr",
@@ -25,6 +34,7 @@
 			"dejavu",
 			"dunder",
 			"figsize",
+			"finalizer",
 			"Fira",
 			"flate",
 			"FONTSIZE",

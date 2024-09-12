@@ -92,22 +92,41 @@ def find_any(haystack, needles):
     return result
 
 
-def querydict(d, q):
+def query_dict(d, q):
+    """Use an xpath to get multiple elements of a dict.
+    (mimics xpath usage in XML files)
+
+    Args:
+        d (dict): Any dictionary.
+        q (str): xpath (based on XML xpath format) split by "/" into a
+            depth-wise list (all levels must match, or there is no
+            match).
+
+    Raises:
+        TypeError: d is not dict, or q is not str
+
+    Returns:
+        dict: the matching sub-element
+    """
     # based on <https://stackoverflow.com/a/7320730/4541104>
     # MarcoS. Sep 6, 2011. Accessed Aug 23, 2024.
+    if not isinstance(d, dict):
+        raise TypeError("d must be dict but got {}"
+                        .format(emit_cast(q)))
     if not isinstance(q, str):
         raise TypeError("query path must be str but got {}"
                         .format(emit_cast(q)))
-    keys = q.split('/')
-    nd = d
+    keys = q.split('/')  # Make depth-wise (not parallel) list.
+    nd = d  # NOTE: ok since return None if no match.
     for  k  in  keys:
         if  k == '':
             continue
         if  k  in  nd:
             nd = nd[k]
+            # TODO: return now?
         else:
             return  None
-    return  nd
+    return nd
 
 
 def get_all_queries(d, parent=""):
