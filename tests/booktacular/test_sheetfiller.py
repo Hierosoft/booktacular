@@ -49,9 +49,9 @@ def filled_svg_file(request, load_data):
     # Initialize and populate the sheet
     sheet = BooktacularSheet()
     sheet.load(template_path)
-    sheet.set_meta(meta)
-    sheet.set_mappings(mappings)
-    sheet.set_values(source)
+    sheet.setMeta(meta)
+    sheet.setMappings(mappings)
+    sheet.setFields(source)
 
     # for src, dst in mappings.items():
     #     value = query_dict(meta, src)
@@ -95,7 +95,7 @@ def test_filled_svg_creation(filled_svg_file, load_data):
     assert xpath == good_p, "key_of_value({}) {} != {}".format("armor_class_", xpath, good_p)
     src_v = query_dict(source, xpath)
     nur_ac = 17
-    # Has to be converted to str during set_values
+    # Has to be converted to str during setFields
     #   to prevent TypeError in serialization in xml
     #   in Python 3.8.19 (and is loaded as str
     #   like everything) so cast to int below.

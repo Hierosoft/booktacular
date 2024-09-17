@@ -1,3 +1,5 @@
+from collections import OrderedDict
+import csv
 import json
 import os
 import sys
@@ -15,6 +17,14 @@ if __name__ == "__main__":
 from booktacular import (
     get_all_queries,
     query_dict,
+)
+
+from pyinkscape.xmlnav import (
+    # clean_el_repr,
+    # used_element,
+    # get_leaf,
+    used_elements,
+    # SVG_NS,
 )
 
 logger = getLogger(__name__)
@@ -56,52 +66,222 @@ class BooktacularSheet:
         self._path = None
         self._meta = None
         self._mappings = None
+        self.results = None
+        self._mappingsPath = None
 
     def load(self, path):
         self._doc = Canvas(path)
         self._path = path
 
-    def set_meta(self, meta):
-        """Set the SVG's usage metadata for fields by name"""
+    def setMeta(self, meta):
+        """Set the SVG's usage metadata for fields by name.
+        The structure is used as a translator.
+        Example: e1p-character-sheet-for-pf2/character-fields.json
+        """
         self._meta = meta
 
-    def set_mappings(self, mappings):
-        """Set dict that maps data json paths to SVG field names"""
+    def setMappings(self, mappings):
+        """Set dict that maps data json paths to SVG field names
+        Example: from booktacular.btpb2 import mappings
+        """
+        # TODO: Do this automatically. See for location.
         self._mappings = mappings
 
-    def set_values(self, source):
-        """Set all of the values possible in SVG from source
+    def emitFillResultsYaml(self):
+        if not self.results:
+            return {
+                'error': "There are no results. Run setFields first."
+            }
+        # shown_keys = set()
+        results = self.results
+        shown_sub_keys = set()
+        ordered_keys = ['used_dst_keys', 'used_src_keys',
+                        'unused_src_keys', 'unused_dst_keys']
+        # ^ Show these first since more meaningful than showing
+        #   the keys as src_keys or dst_keys and shown_keys
+        #   makes keys only show one time.
+
+        for key in results.keys():
+            if key not in ordered_keys:
+                ordered_keys.append(key)
+
+        variable_keys = []
+        print("results:")
+        for key in ordered_keys:
+            result = results[key]
+            # shown_keys.add(key)
+            if result:
+                print(f"  {key}:")
+                if isinstance(result, (list, tuple, set)):
+                    for sub_key in result:
+                        if sub_key in shown_sub_keys:
+                            continue
+                        shown_sub_keys.add(sub_key)
+                        print(f"  - \"{sub_key}\"")
+                elif hasattr(result, 'items'):  # usually dict or OrderedDict
+                    for sub_key, value in result.items():
+                        if sub_key in shown_sub_keys:
+                            continue
+                        shown_sub_keys.add(sub_key)
+                        print(f"    {sub_key}: \"{value}\"")
+                else:
+                    variable_keys.add(key)
+
+        for key in variable_keys:
+            # Do this separately since str is probably important (msg, error, etc)
+            print(f"  {key}: \"{results[key]}\"")
+
+    def mappingsPath(self):
+        return self._mappingsPath
+
+    def setMappingsPath(self, value):
+        self._mappingsPath = value
+
+    def saveMappings(self, data: dict, path: str = None) -> None:
+        """Save the provided dictionary data to a CSV file.
 
         Args:
-            source (dict): Character data, such as representing a JSON
+            data (dict): A dictionary containing 'src_keys' (list of
+                source keys), 'dst_keys' (list of destination keys), and
+                'mapped' (sub dictionary).
+            path (str, optional): The file path where the CSV file will
+                be saved. Defaults to self.mappingsPath().
+
+        Raises:
+            ValueError: If the path is not provided nor is
+                mappingsPath() a path.
+        """
+        # Default to self.mappingsPath() if path is None
+        if path is None:
+            path = self.mappingsPath()
+
+        if path is None:
+            raise ValueError(
+                "File path must be provided,"
+                " otherwise call setMappingsPath first.")
+
+        with open(path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+
+            # Write the title row
+            writer.writerow(["Source", "Destination"])
+
+            # Write the mapped dictionary's key-value pairs
+            for src, dst in data['mapped'].items():
+                writer.writerow([src, dst])
+
+            # Write each src_key with an empty destination
+            for src_key in data['src_keys']:
+                writer.writerow([src_key, ""])
+
+            # Write each dst_key with an empty source
+            for dst_key in data['dst_keys']:
+                writer.writerow(["", dst_key])
+            print("Saved '{}' (used and unused mappings)".format(path))
+
+    def loadMappings(self, path: str) -> None:
+        """Load mappings from a CSV file into the self._mappings OrderedDict.
+
+        Args:
+            path (str): The file path from where the CSV file will be loaded.
+
+        Raises:
+            ValueError: If the Source or Destination columns are not found in the CSV.
+        """
+        mappings = OrderedDict()
+
+        with open(path, mode='r', newline='') as file:
+            reader = csv.reader(file)
+
+            # Read the title row and determine the indices for Source and Destination
+            header = next(reader)
+
+            try:
+                src_idx = header.index("Source")
+                dst_idx = header.index("Destination")
+            except ValueError:
+                raise ValueError(
+                    "CSV must contain 'Source' (xpath-style json path)"
+                    " and 'Destination (SVG element ID)' columns.")
+
+            # Iterate over the remaining rows
+            for row in reader:
+                src = row[src_idx].strip() if row[src_idx] else None
+                dst = row[dst_idx].strip() if row[dst_idx] else None
+
+                if src and dst:
+                    mappings[src] = dst
+
+        # Append the loaded mappings to self._mappings
+        if not hasattr(self, '_mappings'):
+            self._mappings = OrderedDict()
+
+        self._mappings.update(mappings)
+
+    def loadFields(self, data_path):
+        self._in_path = data_path
+        mappings_csv_path = os.path.splitext(data_path)[0] + ".csv"
+        self.setMappingsPath(mappings_csv_path)
+        with open(data_path, 'r') as stream:
+            source_data = json.load(stream)
+        return self.setFields(source_data)
+
+    def setFields(self, source_data):
+        """Set all of the values possible in SVG from source
+        Uses meta (a.k.a. translator)
+
+        self._meta Example: e1p-character-sheet-for-pf2/character-fields.json
+
+        self._mappings Example: from booktacular.btpb2 import mappings
+
+        Args:
+            data (dict): Character data, such as representing a JSON
                 file exported by PB2e
         """
         if not hasattr(self._doc, "setField"):
             raise TypeError(
-                "_doc is {} but expected Hierosoft fork of"
-                " pyinkscape.Canvas (missing .setField)"
-                .format(type(self._doc)))
+                f"_doc is {type(self._doc)} but is missing .setField"
+                " (expected Canvas from Hierosoft fork of pyinkscape)")
+        if self._mappingsPath:
+            self.loadMappings(self._mappingsPath)
+        else:
+            print(
+                "Warning: not loaded from file."
+                " No mappings CSV file will be loaded"
+                " and missing ones will not save."
+                " To avoid this, use loadFields"
+                " instead of setFields, or call setMappingsPath"
+                " before calling setFields.")
+
         results = {
             "missing_source_fields": [],
             "missing_template_fields": [],
         }
         no_dst_key = set()
         no_src_key = set()
-        dst_keys = set()
-        src_keys = set()
-        used_src_keys = get_all_queries(source)
-        used_dst_keys = set()
+        results['dst_keys'] = set()
+        # results['used_src_keys'] = set()  # replaced by 'mapped'
+        results['src_keys'] = get_all_queries(source_data)
+        # results['used_dst_keys'] = set()  # replaced by 'mapped'
+        results['mapped'] = OrderedDict()
         if no_dst_key:
-            logger.warning("Source fields with no destination field: {}"
-                           .format(no_dst_key))
+            logger.warning("Source fields with no destination field:"
+                           f" {no_dst_key}")
         if no_src_key:
-            logger.warning("Destination fields with no source field: {}"
-                           .format(no_src_key))
+            logger.warning("Destination fields with no source field:"
+                           f" {no_src_key}")
+        all_dst_keys = self._doc.getAllIds()
+        for key in all_dst_keys:
+            if key.endswith("_"):
+                results['dst_keys'].add(key)
+        # results['used_src_keys'] = []  # See results['mapped'] keys
+        results['used_dst_keys'] = set()  # may be bigger than
+        #   results['mapped'] if there is a problem.
         for xpath, field in self._mappings.items():
-            new = query_dict(source, xpath)
+            new = query_dict(source_data, xpath)
             if new is None:
                 results['missing_source_fields'].append(xpath)
-                msg = "data source is missing {}".format(xpath)
+                msg = f"data source is missing {xpath}"
                 logger.warning(msg)
                 continue
             # leaves = self._doc.setField(
@@ -113,24 +293,50 @@ class BooktacularSheet:
             # if not leaves:
             if not self._doc.setField(field, str(new)):
                 results['missing_template_fields'].append(xpath)
-                msg = ("sheet is missing text or group"
-                       " with id={} containing a tspan"
-                       .format(repr(xpath)))
+                msg = (f"sheet is missing text or group"
+                       f" with id={repr(xpath)} containing a tspan")
                 logger.warning(msg)
                 continue
-            used_dst_keys.add(field)
+            # results['used_src_keys'].add(xpath)
+            # results['used_dst_keys'].add(field)
+            if field in results['used_dst_keys']:
+                print("Warning: changing source field {}"
+                      " mapping destination from {} to {}"
+                      .format(xpath, results['mapped'][xpath], field))
+            results['mapped'][xpath] = field
+        results['used_dst_keys'] = results['mapped'].values()
+        # ^ values is the real set of used values, since could be
+        #   redundant!
+
+        results['used_src_keys'] = list(results['mapped'].keys())
+        for origin in ('src', 'dst'):
+            origin_keys = f'{origin}_keys'
+            unused_origin_keys = f'unused_{origin}_keys'
+            # ^ defines unused_dst_keys and unused_src_keys
+            used_origin_keys = f'used_{origin}_keys'
+            results[unused_origin_keys] = set()
+            for key in results[origin_keys]:
+                if key not in results[used_origin_keys]:
+                    # If this key in src_keys not in used_src_keys,
+                    #   add it to unused_src_keys
+                    results[unused_origin_keys].add(key)
+        del results['used_src_keys']  # see mapped instead
+
+        self.results = results
+        self.saveMappings(results)
         return results
 
     def getContent(self, ID):
         # formerly getValueById
-        leaves = self._doc.getLeavesById(
-            ID, "text", "tspan", skip_empty=True)
-        if not leaves:
-            return None
-        if len(leaves) > 1:
-            used = used_elements(leaves)
-            return used[0]
-        return leaves[0].text
+        self._doc.setField()
+        # leaves = self._doc.getLeavesById(
+        #     ID, "text", "tspan", skip_empty=True)
+        # if not leaves:
+        #     return None
+        # if len(leaves) > 1:
+        #     used = used_elements(leaves)
+        #     return used[0]
+        # return leaves[0].text
 
     def getElementById(self, ID):
         # get all existing layers
@@ -139,31 +345,33 @@ class BooktacularSheet:
         # layer1 = self._doc.layer("Layer 1")
         # # get a layer by ID
         # layer1 = self._doc.layer_by_id("layer1")
-        elements = self._doc.getLeavesById(
-            ID, "text", "tspan", skip_empty=True)
-        if len(elements) < 1:
-            raise ValueError("{} is missing id {}".format(self._path, ID))
-        elif len(elements) != 1:
-            logger.info("Got {} element(s).".format(len(elements)))
+        return self._doc.getElementById(ID)
+        # elements = self._doc.getLeavesById(
+        #     ID, "text", "tspan", skip_empty=True)
+        # if len(elements) < 1:
+        #     raise ValueError("{} is missing id {}".format(self._path, ID))
+        # elif len(elements) != 1:
+        #     logger.info("Got {} element(s).".format(len(elements)))
 
-        elem = elements[0]
-        print("type(elem)=={}".format(type(elem)))
-        return elem
+        # elem = elements[0]
+        # print("type(elem)=={}".format(type(elem)))
+        # return elem
 
     def setValueById(self, key, value):
-        leaves = self._doc.getLeavesById(
-            key, "text", "tspan", skip_empty=False)
-        # ^ FIXME: For some reason not all placeholders are
-        #   detected, so skip_empty=False is
-        #   necessary.
-        if not leaves:
-            logger.warning("Missing {}".format(key))
-            return
-        for leaf in leaves:
-            leaf.text = value
-            value = ""  # Clear extra leaves to account for odd
-            #  Inkscape behavior of generating multiple text tags
-            #  for one visible text field
+        return self._doc.setField(key, value)
+        # leaves = self._doc.getLeavesById(
+        #     key, "text", "tspan", skip_empty=False)
+        # # ^ FIXME: For some reason not all placeholders are
+        # #   detected, so skip_empty=False is
+        # #   necessary.
+        # if not leaves:
+        #     logger.warning("Missing {}".format(key))
+        #     return
+        # for leaf in leaves:
+        #     leaf.text = value
+        #     value = ""  # Clear extra leaves to account for odd
+        #     #  Inkscape behavior of generating multiple text tags
+        #     #  for one visible text field
 
     def save(self, path=None, overwrite=False):
         """Save the xml.
@@ -200,17 +408,17 @@ def main():
     sheet = BooktacularSheet()
     from booktacular.btpb2 import mappings
     sheet.load(template_path)
-    sheet.set_mappings(mappings)
-    sheet.set_meta(translator)
+    sheet.setMappings(mappings)
+    sheet.setMeta(translator)
     with open(in_path, 'r') as stream:
         source = json.load(stream)
-    sheet.set_values(source)
+    sheet.setFields(source)
     # The text attribute itself has the id, so this should be easy:
     got_character_name_e = sheet.getElementById("character_name_")
     # got_id = got_character_name_e.attrib['id']  # "tspan1016"
     got_name = got_character_name_e.text
     good_name = "Nur Wonderfield"
-    # If got_name is placeholder value, set_values must have failed:
+    # If got_name is placeholder value, setFields must have failed:
     assert got_name == good_name, "%s != %s" % (got_name, good_name)
     # Harder to get since group has the id (ancestor g tag generated by
     #   Inkscape):
@@ -218,7 +426,7 @@ def main():
     got_ac_id = got_ac_e.attrib['id']  # tspan1020
     got_ac = got_ac_e.text  # can be integer
     good_ac = 17
-    # If got_ac is placeholder value, set_values must have failed:
+    # If got_ac is placeholder value, setFields must have failed:
     assert int(got_ac) == good_ac, "%s != %s" % (got_ac, good_ac)
     new_path = os.path.splitext(template_path)[0] + ".FILLED.svg"
     if sheet.save(new_path, overwrite=True):
