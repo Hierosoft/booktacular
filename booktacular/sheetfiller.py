@@ -61,6 +61,17 @@ DEFAULTS = {
 
 
 class BooktacularSheet:
+    """Manage sheet filling.
+    Attributes:
+        _mappingsPath (str): The mappings CSV path that maps Source
+            (JSON xpath) to destination (SVG ID). See loadMappings
+            and loadFields.
+        _path (str): The SVG template path.
+        results (dict): Results of the last loadSheet or fillSheet
+            fed to saveMappings to see what fields were and weren't
+            mapped using a csv file that can be then edited to map more
+            Source (JSON xpath) and Destination (SVG ID) fields.
+    """
     def __init__(self):
         self._doc = None
         self._path = None
@@ -68,6 +79,7 @@ class BooktacularSheet:
         self._mappings = None
         self.results = None
         self._mappingsPath = None
+        self._sourceData = None
 
     def load(self, path):
         self._doc = Canvas(path)
@@ -159,24 +171,31 @@ class BooktacularSheet:
             raise ValueError(
                 "File path must be provided,"
                 " otherwise call setMappingsPath first.")
+        if self._sourceData is None:
+            raise ValueError(
+                "You must call loadFields or setFields before saveMappings.")
 
         with open(path, mode='w', newline='') as file:
             writer = csv.writer(file)
 
             # Write the title row
-            writer.writerow(["Source", "Destination"])
+            writer.writerow(["Source", "Value", "Destination"])
 
             # Write the mapped dictionary's key-value pairs
-            for src, dst in data['mapped'].items():
-                writer.writerow([src, dst])
+            for xpath, dst in data['mapped'].items():
+                new = query_dict(self._sourceData, xpath)
+                writer.writerow([xpath, new, dst])
 
             # Write each src_key with an empty destination
-            for src_key in data['src_keys']:
-                writer.writerow([src_key, ""])
+            for xpath in data['src_keys']:
+                if xpath not in data['mapped']:
+                    new = query_dict(self._sourceData, xpath)
+                    writer.writerow([xpath, new, ""])
 
             # Write each dst_key with an empty source
             for dst_key in data['dst_keys']:
-                writer.writerow(["", dst_key])
+                if dst_key not in data['mapped'].values():
+                    writer.writerow(["", "", dst_key])
             print("Saved '{}' (used and unused mappings)".format(path))
 
     def loadMappings(self, path: str) -> None:
@@ -220,7 +239,8 @@ class BooktacularSheet:
 
     def loadFields(self, data_path):
         self._in_path = data_path
-        mappings_csv_path = os.path.splitext(data_path)[0] + ".csv"
+        mappings_csv_path = os.path.splitext(data_path)[0]
+        mappings_csv_path += ".booktacular-mappings.csv"
         self.setMappingsPath(mappings_csv_path)
         with open(data_path, 'r') as stream:
             source_data = json.load(stream)
@@ -252,7 +272,7 @@ class BooktacularSheet:
                 " To avoid this, use loadFields"
                 " instead of setFields, or call setMappingsPath"
                 " before calling setFields.")
-
+        self._sourceData = source_data
         results = {
             "missing_source_fields": [],
             "missing_template_fields": [],
