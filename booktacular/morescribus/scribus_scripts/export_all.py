@@ -95,8 +95,8 @@ elif platform_system() == "Windows":
 else:
     sysdirs['APPDATA'] = os.path.join(sysdirs['HOME'], ".config")
 
-MY_CONFIGS = os.path.join(sysdirs['APPDATA'], "booktacular")
-MY_CONFIG = os.path.join(MY_CONFIGS, "booktacular.json")
+MY_CONF_DIR = os.path.join(sysdirs['APPDATA'], "booktacular")
+JSON_CONF_PATH = os.path.join(MY_CONF_DIR, "booktacular.json")
 
 DEFAULT_SLA_PATH = None
 DEFAULT_SNAPSHOTS_PATH = None
@@ -107,7 +107,7 @@ DEFAULT_PUBLISH_CONFIG = {
         'release-dir': DEFAULT_SNAPSHOTS_PATH,
     }
 }
-PUBLISH_CONFIG = None
+settings = None
 
 
 '''
@@ -176,25 +176,25 @@ EXPORT_FORMATS = {
 
 
 def save_config():
-    my_configs = os.path.dirname(MY_CONFIG)
+    my_configs = os.path.dirname(JSON_CONF_PATH)
     if not os.path.isdir(my_configs):
         os.makedirs(my_configs)
-    tmp_path = MY_CONFIG + ".tmp"
+    tmp_path = JSON_CONF_PATH + ".tmp"
     # Use a tmp file to prevent a corrupt/blank file.
     with open(tmp_path, 'w') as stream:
-        json.dump(PUBLISH_CONFIG, stream, indent=2, sort_keys=True)
-    shutil.move(tmp_path, MY_CONFIG)
-    echo0('[export_all save_config] saved "%s"' % MY_CONFIG)
+        json.dump(settings, stream, indent=2, sort_keys=True)
+    shutil.move(tmp_path, JSON_CONF_PATH)
+    echo0('[export_all save_config] saved "%s"' % JSON_CONF_PATH)
 
 
 def load_config():
-    global PUBLISH_CONFIG
-    first_file = MY_CONFIG + ".1st"
-    bak_file = MY_CONFIG + ".bak"
+    global settings
+    first_file = JSON_CONF_PATH + ".1st"
+    bak_file = JSON_CONF_PATH + ".bak"
     result = None
     try:
-        with open(MY_CONFIG, 'r') as stream:
-            PUBLISH_CONFIG = json.load(stream)
+        with open(JSON_CONF_PATH, 'r') as stream:
+            settings = json.load(stream)
         result = True
     except json.decoder.JSONDecodeError:
         if not os.path.isfile(first_file):
@@ -203,57 +203,57 @@ def load_config():
             else:
                 bak_file = first_file
         echo0('Loading "%s" failed. Moving to "%s"'
-              % (MY_CONFIG, bak_file))
+              % (JSON_CONF_PATH, bak_file))
         if os.path.isfile(bak_file):
             os.remove(bak_file)
-        shutil.move(MY_CONFIG, bak_file)
+        shutil.move(JSON_CONF_PATH, bak_file)
         result = False
-        PUBLISH_CONFIG = {}
-    if 'morescribus' not in PUBLISH_CONFIG:
-        PUBLISH_CONFIG['morescribus'] = copy.deepcopy(
+        settings = {}
+    if 'morescribus' not in settings:
+        settings['morescribus'] = copy.deepcopy(
             DEFAULT_PUBLISH_CONFIG['morescribus']
         )
         return False
     else:
         for key, value in DEFAULT_PUBLISH_CONFIG['morescribus'].items():
-            if key not in PUBLISH_CONFIG['morescribus']:
-                PUBLISH_CONFIG['morescribus'][key] = value
+            if key not in settings['morescribus']:
+                settings['morescribus'][key] = value
     return result
 
 
 def get_morescribus_setting(key):
-    morescribus_d = PUBLISH_CONFIG.get('morescribus')
+    morescribus_d = settings.get('morescribus')
     value = None
     # if morescribus_d is None:
-    #     PUBLISH_CONFIG['morescribus'] = {}
-    #     morescribus_d = PUBLISH_CONFIG['morescribus']
+    #     settings['morescribus'] = {}
+    #     morescribus_d = settings['morescribus']
     if morescribus_d:
         value = morescribus_d.get(key)
     if not value:
         echo0('[get_morescribus_setting] Warning:'
               ' no {"morescribus": {"%s": ...} } in "%s"'
-              % (key, MY_CONFIG))
+              % (key, JSON_CONF_PATH))
     return value
 
 
 def set_morescribus_setting(key, value):
-    morescribus_d = PUBLISH_CONFIG.get('morescribus')
+    morescribus_d = settings.get('morescribus')
     if morescribus_d is None:
         echo0('[set_morescribus_setting] Warning:'
               ' no {"morescribus": { "%s": ... } } in section "%s"'
-              % (key, MY_CONFIG))
-        PUBLISH_CONFIG['morescribus'] = {}
-        morescribus_d = PUBLISH_CONFIG['morescribus']
+              % (key, JSON_CONF_PATH))
+        settings['morescribus'] = {}
+        morescribus_d = settings['morescribus']
     morescribus_d[key] = value
 
 
-if os.path.isfile(MY_CONFIG):
+if os.path.isfile(JSON_CONF_PATH):
     load_config()
 else:
-    PUBLISH_CONFIG = copy.deepcopy(DEFAULT_PUBLISH_CONFIG)
+    settings = copy.deepcopy(DEFAULT_PUBLISH_CONFIG)
     # save_config()
     # echo0('There was no "%s", so it was saved with blank defaults.'
-    #       % (MY_CONFIG))
+    #       % (JSON_CONF_PATH))
 
 
 def init_formats():
@@ -293,7 +293,7 @@ def export_pdf(options):
     if not init_formats():
         error = ('Configure booktacular with export_all or edit\n"%s".'
                  ' Example:\n%s'
-                 % (MY_CONFIG, json.dumps(DEFAULT_PUBLISH_CONFIG)))
+                 % (JSON_CONF_PATH, json.dumps(DEFAULT_PUBLISH_CONFIG)))
         if running_in_scribus:
             scribus.messageBox('Export Error', error, scribus.ICON_WARNING,
                                scribus.BUTTON_OK)
@@ -368,7 +368,7 @@ if running_in_scribus:
         scribus.messageBox(
             'Export Error',
             ('Set {"morescribus": {"scribus-project": ...} } in "%s" first.'
-             % (MY_CONFIG)),
+             % (JSON_CONF_PATH)),
             scribus.ICON_ERROR,
             scribus.BUTTON_OK,
         )

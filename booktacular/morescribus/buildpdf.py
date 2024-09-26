@@ -40,6 +40,7 @@ from booktacular.morescribus.scribus_scripts.export_all import (
     EXPORT_FORMATS,
     # REPO_DIR,
     get_morescribus_setting,
+    settings,
 )
 
 PREFLIGHT_MSG = '''
@@ -598,8 +599,9 @@ def export_pdfs(options={}):
                 error_count += 1
                 echo0(prefix + 'Error: scribus script (`{}`)'
                       ' caused no error code nor had "Error" in output,'
-                      ' but did not export: "{}"'
-                      .format(shlex.join(cmd_parts), fmt['destination']))
+                      ' but did not export: "{}". Settings: {}'
+                      .format(shlex.join(cmd_parts), fmt['destination']),
+                              settings)
             elif fmt.get('old_dt') is not None:
                 m_time = os.path.getmtime(fmt['destination'])
                 if fmt['old_dt'] >= datetime.fromtimestamp(m_time):
