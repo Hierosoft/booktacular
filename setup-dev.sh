@@ -57,3 +57,5 @@ if [ -f ../pyinkscape/pyinkscape/__init__.py ]; then
 else
     >&2 echo "[$0] INFO: Using pyinkscape from PyPI."
 fi
+
+$PIP install --no-deps -e ../booktacular || exit 1
