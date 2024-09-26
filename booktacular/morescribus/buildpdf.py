@@ -24,20 +24,22 @@ import os
 import platform
 import shlex
 import subprocess
+
 from datetime import (
     datetime,
     timedelta,
 )
 
-import scribus_scripts
-from scribus_scripts.export_all import (
+from booktacular.morescribus import scribus_scripts
+from booktacular.morescribus.scribus_scripts.export_all import (
     echo0,
     # now,
     # date_str,
-    SLA_PATH,
+    # SLA_PATH,
     # SNAPSHOTS_PATH,
     EXPORT_FORMATS,
     # REPO_DIR,
+    get_morescribus_setting,
 )
 
 PREFLIGHT_MSG = '''
@@ -301,7 +303,7 @@ def preflight_fix(src, dst, dpi="300", more_mode_options=None):
     #   -M defaultall -o PDF_X-1a.pdf -v -d 300/300/300  -m
     #   XPDFX=INTENTNAME -m XPDFXVERSION=1A -J 100 -P -f -N
     #   ~/.local/share/fonts inner3-167.pdf
-    cmd_parts = [ # via pstill author e-mail 20230831, except:
+    cmd_parts = [  # via pstill author e-mail 20230831, except:
         # - he says try remove -P
         # - I added getPageBBox from my old command to more_mode_options
         # - I fixed -M transmode=2 adding missing space before -M
@@ -323,11 +325,11 @@ def preflight_fix(src, dst, dpi="300", more_mode_options=None):
     cmd = shlex.join(cmd_parts)
     run_start_dt = datetime.now()
     mins = 4 * 60 + 35  # the usual # of mins it takes
-    spkb = float(mins * 60) / float(245738679 / 1024)  # seconds per kb
+    s_per_kb = float(mins * 60) / float(245738679 / 1024)  # seconds per kb
     # ^ Based on 2023-07-26 print release: /(245738679/1024)
     # TODO: Get the collective size of the images as well.
     kb = os.stat(src).st_size / 1024
-    est_seconds = kb * spkb
+    est_seconds = kb * s_per_kb
     est_delta = timedelta(seconds=est_seconds)
     eta = run_start_dt + est_delta
     import re
@@ -417,7 +419,7 @@ def preflight_fix(src, dst, dpi="300", more_mode_options=None):
     echo0(prefix + 'saved "{}"'.format(log_path))
 
     if not os.path.isfile(dst):
-        echo0(prefix + 'Error: `{}` did not produce "{}"'
+        echo0(prefix + 'Error: pstill command `{}` did not produce "{}"'
               ''.format(cmd, dst))
         return 1
     else:
@@ -480,7 +482,7 @@ def export_web_and_ad_cover_images(path, dst_path, page=1):
     expected_path = dst_path + "-" + str(page).rjust(3, '0') + ".jpg"
     if not os.path.isfile(expected_path):
         raise RuntimeError(
-            '`{}` did not produce "{}"'
+            '`{}` did not produce an image: "{}"'
             ''.format(shlex.join(cmd_parts), expected_path)
         )
     # -f: first page
@@ -544,7 +546,8 @@ def export_pdfs(options={}):
     missing_count = 0
     done_count = 0
     older_count = 0
-    in_dt = os.path.getmtime(SLA_PATH)
+    sla_path = get_morescribus_setting('scribus-project')
+    in_dt = os.path.getmtime(sla_path)
     for _, fmt in EXPORT_FORMATS.items():
         fmt['old_dt'] = None
         if os.path.isfile(fmt['destination']):
@@ -554,7 +557,7 @@ def export_pdfs(options={}):
             if m_time < in_dt:
                 older_count += 1
                 echo0(prefix + 'removing "{}" older than "{}"'
-                      ''.format(fmt['destination'], SLA_PATH))
+                      ''.format(fmt['destination'], sla_path))
                 os.remove(fmt['destination'])
             else:
                 if m_time == in_dt:
@@ -575,15 +578,28 @@ def export_pdfs(options={}):
         print('[release.py main] Waiting for `{}` to complete'
               ' (This may take a while)...'
               ''.format(shlex.join(cmd_parts)))
-        subprocess.check_output(
-            cmd_parts,
-            stderr=subprocess.STDOUT,  # capture stderr too.
-        )
+        # out_str = subprocess.check_output(
+        #     cmd_parts,
+        #     stderr=subprocess.STDOUT,  # capture stderr too.
+        # )
+        process = subprocess.Popen(cmd_parts, stdout=subprocess.PIPE,
+                                   stderr=subprocess.PIPE)
+        output, err = process.communicate()
+        export_code = process.returncode
+        print(output.decode())
+        err_txt = err.decode()
+        print(err_txt, file=sys.stderr)
+        if export_code != 0:
+            return export_code
+        if "Error" in err_txt:
+            return -1
         for _, fmt in EXPORT_FORMATS.items():
             if not os.path.isfile(fmt['destination']):
                 error_count += 1
-                echo0(prefix + 'Error: `{} {} ...` did not produce "{}"'
-                      .format(SCRIBUS_PATH, EXPORT_SCRIPT, fmt['destination']))
+                echo0(prefix + 'Error: scribus script (`{}`)'
+                      ' caused no error code nor had "Error" in output,'
+                      ' but did not export: "{}"'
+                      .format(shlex.join(cmd_parts), fmt['destination']))
             elif fmt.get('old_dt') is not None:
                 m_time = os.path.getmtime(fmt['destination'])
                 if fmt['old_dt'] >= datetime.fromtimestamp(m_time):
@@ -630,8 +646,16 @@ def main():
             exist_action = "overwriting"
         elif arg == "--no-preflight":
             options['preflight'] = False
+        else:
+            print('[buildpdf main] Warning: Unknown arg "%s"'
+                  % arg)
     for fmt in EXPORT_FORMATS.keys():
         # Check if it was already done today.
+        if 'destination' not in EXPORT_FORMATS[fmt]:
+            raise KeyError(
+                "EXPORT_FORMATS[%s]['destination'] is missing."
+                " init_formats in export_all must complete successfully"
+                " before running buildpdf main.")
         ex_path = EXPORT_FORMATS[fmt]['destination']
         if os.path.isfile(ex_path):
             echo0('* {} existing "{}"'.format(exist_action, ex_path))
@@ -644,6 +668,7 @@ def main():
     # if (missing_count > 0) or (options.get('force') is True):
     code = export_pdfs(options=options)
     if code != 0:
+        print("[buildpdf main] export_pdfs failed with code {}".format(code))
         return code
     # else:
     #     echo0("There are no new PDFs to create.")
