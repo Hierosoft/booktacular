@@ -34,6 +34,11 @@ except ModuleNotFoundError:
     echo0("INFO: {} is being imported as module since not running in Scribus."
           "".format(os.path.basename(os.path.realpath(__file__))))
 
+if running_in_scribus:
+    print("[export_all] Running in scribus...")
+else:
+    print("[export_all] Imported as module (pre-scribus).")
+
 if sys.version_info.major < 3:
     ModuleNotFoundError = ImportError
 
@@ -383,6 +388,7 @@ if running_in_scribus:
     for _, options in EXPORT_FORMATS.items():
         export_pdf(options)
 elif __name__ == "__main__":
+    print("[export_all] Running outside of scribus...")
     sys.exit(main_cli())
 # else allow the module to be imported for other use (such as setting
 #   options to prepare for buildpdf to run this as a Scribus arg, which

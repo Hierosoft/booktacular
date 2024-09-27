@@ -260,6 +260,11 @@ def preflight_fix(src, dst, dpi="300", more_mode_options=None):
     sources = [src]
     if isinstance(src, list):
         sources = src
+    for i in range(len(sources)):
+        if not os.path.isfile(sources[i]):
+            raise FileNotFoundError(
+                'There is no "{}" in "{}"'.format(sources[i], os.getcwd()))
+        sources[i] = os.path.abspath(sources[i])
 
     if not os.path.isfile(PSTILL_PATH):
         echo0(PSTILL_MISSING_MSG)
@@ -420,8 +425,9 @@ def preflight_fix(src, dst, dpi="300", more_mode_options=None):
     echo0(prefix + 'saved "{}"'.format(log_path))
 
     if not os.path.isfile(dst):
-        echo0(prefix + 'Error: pstill command `{}` did not produce "{}"'
-              ''.format(cmd, dst))
+        echo0(prefix + 'Error: pstill command `{}` in "{}"'
+              ' did not produce "{}"'
+              .format(cmd, os.getcwd(), dst))
         return 1
     else:
         echo0(prefix + 'Created "{}"'.format(dst))
@@ -649,8 +655,11 @@ def main():
         elif arg == "--no-preflight":
             options['preflight'] = False
         else:
-            print('[buildpdf main] Warning: Unknown arg "%s"'
-                  % arg)
+            pass
+            # Ignore other arguments: They were probably for export_all.py
+            #   in pre-scribus (running_in_scribus is False) mode.
+            # print('[buildpdf main] Warning: Unknown arg "%s"'
+            #       % arg)
     for fmt in EXPORT_FORMATS.keys():
         # Check if it was already done today.
         if 'destination' not in EXPORT_FORMATS[fmt]:
