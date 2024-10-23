@@ -44,7 +44,11 @@ class MorePDF:
                     print("Page %d:" % page_num)
                     print(page.get_textbox(inst))
                 else:
-                    page.add_redact_annot(inst, new, fill=(255, 255, 255))
+                    # Add "whiteout" then annotate over it:
+                    page.add_redact_annot(inst, new, fill=(.985, .967, .94))
+                    # ^ color is 1-, 3-, or 4-long tuple, each component
+                    #   having the range 0 to 1.
+                    # TODO: make color configurable
                     page.apply_redactions()
                     block_replaced += 1
 
