@@ -231,16 +231,21 @@ class BooktacularSheet:
                 if src and dst:
                     mappings[src] = dst
 
+        print('Loaded "%s"' % path)
+
         # Append the loaded mappings to self._mappings
         if not hasattr(self, '_mappings'):
             self._mappings = OrderedDict()
-
         self._mappings.update(mappings)
 
     def loadFields(self, data_path):
         self._in_path = data_path
-        mappings_csv_path = os.path.splitext(data_path)[0]
-        mappings_csv_path += ".booktacular-mappings.csv"
+        mappings_csv_path = os.path.join(
+            os.path.dirname(data_path),
+            "booktacular-source-fields.csv",
+        )
+        # mappings_csv_path = os.path.splitext(data_path)[0]
+        # mappings_csv_path += ".booktacular-mappings.csv"
         self.setMappingsPath(mappings_csv_path)
         with open(data_path, 'r') as stream:
             source_data = json.load(stream)
