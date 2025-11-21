@@ -73,7 +73,7 @@ class BooktacularSheet:
             Source (JSON xpath) and Destination (SVG ID) fields.
     """
     def __init__(self):
-        self._doc = None
+        self._doc: Canvas = None
         self._path = None
         self._meta = None
         self._mappings = None
@@ -251,7 +251,10 @@ class BooktacularSheet:
             source_data = json.load(stream)
         return self.setFields(source_data)
 
-    def setFields(self, source_data):
+    def clearFields(self):
+        self.setFields({})
+
+    def setFields(self, source_data, delete_unused=True):
         """Set all of the values possible in SVG from source
         Uses meta (a.k.a. translator)
 
@@ -262,6 +265,13 @@ class BooktacularSheet:
         Args:
             data (dict): Character data, such as representing a JSON
                 file exported by PB2e
+
+        Returns:
+            dict(list[str]): Statistics
+                - 'missing_source_fields' list(str): fields in
+                  translator not in source.
+                - 'missing_template_fields' list(str): fields in
+                  translator not in template.
         """
         if not hasattr(self._doc, "setField"):
             raise TypeError(
@@ -284,10 +294,10 @@ class BooktacularSheet:
         }
         no_dst_key = set()
         no_src_key = set()
-        results['dst_keys'] = set()
-        # results['used_src_keys'] = set()  # replaced by 'mapped'
+        results['dst_keys'] = []
+        # results['used_src_keys'] = []  # replaced by 'mapped'
         results['src_keys'] = get_all_queries(source_data)
-        # results['used_dst_keys'] = set()  # replaced by 'mapped'
+        # results['used_dst_keys'] = []  # replaced by 'mapped'
         results['mapped'] = OrderedDict()
         if no_dst_key:
             logger.warning("Source fields with no destination field:"
@@ -298,16 +308,22 @@ class BooktacularSheet:
         all_dst_keys = self._doc.getAllIds()
         for key in all_dst_keys:
             if key.endswith("_"):
-                results['dst_keys'].add(key)
+                if key not in results['dst_keys']:
+                    results['dst_keys'].append(key)
         # results['used_src_keys'] = []  # See results['mapped'] keys
-        results['used_dst_keys'] = set()  # may be bigger than
+        results['used_dst_keys'] = []  # may be bigger than
         #   results['mapped'] if there is a problem.
+        results['removed_unused_keys'] = []
         for xpath, field in self._mappings.items():
             new = query_dict(source_data, xpath)
             if new is None:
                 results['missing_source_fields'].append(xpath)
                 msg = f"data source is missing {xpath}"
                 logger.warning(msg)
+                if delete_unused:
+                    if field not in results['removed_unused_keys']:
+                        results['removed_unused_keys'].append(field)
+                        self._doc.setField(field, "")
                 continue
             # leaves = self._doc.setField(
             #     field, "text", "tspan", skip_empty=False)
@@ -322,8 +338,8 @@ class BooktacularSheet:
                        f" with id={repr(xpath)} containing a tspan")
                 logger.warning(msg)
                 continue
-            # results['used_src_keys'].add(xpath)
-            # results['used_dst_keys'].add(field)
+            # results['used_src_keys'].append(xpath)
+            # results['used_dst_keys'].append(field)
             if field in results['used_dst_keys']:
                 print("Warning: changing source field {}"
                       " mapping destination from {} to {}"
@@ -332,6 +348,17 @@ class BooktacularSheet:
         results['used_dst_keys'] = results['mapped'].values()
         # ^ values is the real set of used values, since could be
         #   redundant!
+        if delete_unused:
+            for key in results['dst_keys']:
+                if key in results['used_dst_keys']:
+                    continue
+                if key in results['removed_unused_keys']:
+                    continue
+                if not self._doc.setField(key, "",
+                                          ignore_tags=['path', 'image',
+                                                       'rect', 'circle']):
+                    raise NotImplementedError("Can't get enumerated {}"
+                                              .format(key))
 
         results['used_src_keys'] = list(results['mapped'].keys())
         for origin in ('src', 'dst'):
