@@ -213,3 +213,148 @@ else:
     from urllib import quote_plus as urllib_quote_plus  # noqa: F401,E501 # type: ignore
     from urllib import urlencode  # noqa: F401 # type: ignore
 ```
+
+## booktacular/data/templates/npc-universal-npc-roleplaying-template.tex, bake-templates.py
+- 2026-04-11 https://grok.com/project/fe659334-f4b1-4c98-9898-668f494539b1?chat=60737ed8-fd8b-4bbf-ba9b-29df26409a99&rid=95227c8a-e25c-4b7c-b562-bf538b544e6f
+  - https://grok.com/share/c2hhcmQtMg_52cef4ff-408c-44b8-a88f-40b63716c7ba
+What is a specific npc design sheet that is widely accepted as useful?
+
+I like Universal NPC Roleplaying Template but can't find a blank version, as the article is a guide and I can't find any links to files.
+
+Make a nice version for DnD 5e but generic enough for Basic Fantasy RPG, using LaTeX
+
+
+Assuming there are tex files in ./booktacular/data/templates/ such as data/templates/npc-universal-npc-roleplaying-template.tex which we just made, make a python script to bake all tex files in that folder to pdf in  data/templates/pdf/ after ensuring the directory exists. Use whatever conversion options are useful and accurate to this specific tex file we made.
+
+How do we install all of the latex packages we are using? Make the Python script do that too.
+
+It is not working on Linux Mint zena. Make sure you install all necessary latex packages, and if they are system packages, provide instructions, such as `sudo apt install texlive-latex-base` if the entire pdflatex command is missing, or other package(s) as necessary.
+```
+owner@roamtop:~/git/booktacular$ ./bake-templates.py
+🔨 Found 1 LaTeX template(s) to bake
+📁 Output folder: /home/owner/git/booktacular/data/templates/pdf
+
+Compiling → npc-universal-npc-roleplaying-template.tex
+   ✗ Failed (run 1)
+['', "! LaTeX Error: File `booktabs.sty' not found.", '', 'Type X to quit or <RETURN> to proceed,', 'or enter new name. (Default extension: sty)', '', 'Enter file name: ', '! Emergency stop.', '<read *> ', '         ', 'l.7 \\usepackage', '               {array}^^M', '!  ==> Fatal error occurred, no output PDF file produced!', 'Transcript written on /home/owner/git/booktacular/data/templates/pdf/npc-univer', 'sal-npc-roleplaying-template.log.']
+
+🎉 Baking complete!
+owner@roamtop:~/git/booktacular$ ./bake-templates.py
+🔧 Detected LaTeX distribution: TEXLIVE
+📦 Ensuring required packages are installed...
+
+Using tlmgr to install packages...
+   ⚠️  tlmgr failed (some packages may already be present):
+b'TLPDB: not a directory, not loading: /home/owner/texmf\ntlmgr: user mode not initialized, please read the documentation!\n'
+
+🔨 Found 1 template(s) to bake
+📁 Output folder: /home/owner/git/booktacular/data/templates/pdf
+
+Compiling → npc-universal-npc-roleplaying-template.tex
+   ✗ Failed on run 1
+ restricted \write18 enabled.
+entering extended mode
+(./npc-universal-npc-roleplaying-template.tex
+LaTeX2e <2023-11-01> patch level 1
+L3 programming layer <2024-01-22>
+(/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
+Document Class: article 2023/05/17 v1.4n Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/size11.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty)
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+(/usr/share/texlive/texmf-dist/tex/latex/base/inputenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/base/fontenc.sty)
+(/usr/share/texmf/tex/latex/lm/lmodern.sty)
+
+! LaTeX Error: File `booktabs.sty' not found.
+
+Type X to quit or <RETURN> to proceed,
+or enter new name. (Default extension: sty)
+
+Enter file name:
+! Emergency stop.
+<read *>
+
+l.7 \usepackage
+               {array}^^M
+!  ==> Fatal error occurred, no output PDF file produced!
+Transcript written on /home/owner/git/booktacular/data/templates/pdf/npc-univer
+sal-npc-roleplaying-template.log.
+
+🎉 Baking complete! Check the pdf/ folder.
+```
+
+I installed the packages using apt but the script output is:
+```
+owner@roamtop:~/git/booktacular$ ./bake-templates.py
+✅ pdflatex is already installed.
+
+📦 Installing/updating LaTeX packages via tlmgr...
+   ⚠️  tlmgr had some issues (packages may already be present):
+b'TLPDB: not a directory, not loading: /home/owner/texmf\ntlmgr: user mode not initialized, please read the documentation!\n'
+
+🔨 Found 1 template(s) to bake
+📁 Output folder: /home/owner/git/booktacular/data/templates/pdf
+
+Compiling → npc-universal-npc-roleplaying-template.tex
+   ✗ Failed on run 1
+tex)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/basiclayer/pgfcorerdf.code.tex))
+)
+(/usr/share/texlive/texmf-dist/tex/generic/pgf/modules/pgfmoduleshapes.code.tex
+) (/usr/share/texlive/texmf-dist/tex/generic/pgf/modules/pgfmoduleplot.code.tex
+)
+(/usr/share/texlive/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version-0-65
+.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/pgf/compatibility/pgfcomp-version-1-18
+.sty)) (/usr/share/texlive/texmf-dist/tex/latex/tools/verbatim.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/environ/environ.sty
+(/usr/share/texlive/texmf-dist/tex/latex/trimspaces/trimspaces.sty)))
+(/usr/share/texlive/texmf-dist/tex/latex/tools/multicol.sty)
+(/usr/share/texmf/tex/latex/lm/t1lmr.fd)
+No file npc-universal-npc-roleplaying-template.aux.
+*geometry* driver: auto-detecting
+*geometry* detected driver: pdftex
+(/usr/share/texlive/texmf-dist/tex/context/base/mkii/supp-pdf.mkii
+[Loading MPS to PDF converter (version 2006.09.02).]
+) (/usr/share/texlive/texmf-dist/tex/latex/epstopdf-pkg/epstopdf-base.sty
+(/usr/share/texlive/texmf-dist/tex/latex/latexconfig/epstopdf-sys.cfg))
+(/usr/share/texmf/tex/latex/lm/ot1lmr.fd)
+(/usr/share/texmf/tex/latex/lm/omllmm.fd)
+(/usr/share/texmf/tex/latex/lm/omslmsy.fd)
+(/usr/share/texmf/tex/latex/lm/omxlmex.fd)
+(/usr/share/texmf/tex/latex/lm/ts1lmr.fd)
+Overfull \hbox (14.66762pt too wide) in paragraph at lines 55--56
+[]\T1/lmr/bx/n/10.95 Personality & Tac-tics: \T1/lmr/m/n/10.95 (core traits, ho
+w they be-have in con-ver-sa-tion or con-flict, goals/motivations)
+
+Underfull \hbox (badness 10000) in paragraph at lines 76--80
+\T1/lmr/bx/n/10.95 Class / Oc-cu-pa-tion:
+! Extra alignment tab has been changed to \cr.
+<template> ...egin \relax \d@llarend \endtemplate
+
+l.86 ...extbf{CON} & \textbf{INT} & \textbf{WIS} &
+                                                   \textbf{CHA} \\
+!  ==> Fatal error occurred, no output PDF file produced!
+Transcript written on /home/owner/git/booktacular/data/templates/pdf/npc-univer
+sal-npc-roleplaying-template.log.
+
+🎉 Baking complete! Check the data/templates/pdf/ folder.
+```
+Lets stick with the current goal of making the nicest output possibly by not removing any features from the tex, but correcting mistakes and installing packages as necessary.
+Here is data/templates/pdf/npc-universal-npc-roleplaying-template.log:
+- paste the log
+
+Put way less blank space under Title / Epithet / Role, and change it from slashes to evenly spaced, and a full-width blank (one big underline touching each margin) under it. For appearance, don't put it in a box, and to save space, put the instructions (italics, non-bold) to the right of it, and make the colon follow the instructions. Add 3 blanks (3 lines, full-width each) under the instructions. Change the role playing bullet items to subheadings, and for each, put a blank (full-width). Make the key info instructions into non-bullets, and a full-width blank under each. Shorten the blanks for AC, HP, and Speed so they don't take more than one column in the 2-column layout. Change "5e Stat Block (Optional)" to "Stat Block (Optional) and make it encompass the whole stat block instead of all of it, if it is possible to put 2 columns inside a box. Notes/Updates section is perfect as-is, with the one-column format.
+
+I said make the blanks way shorter for AC, HP, and Speed. Bring back the missing labels and blanks for Race (but change it to Ancestry), Occupation (leave out Class since NPCs will have no player class),  Alignment, CR/Challenge (but change to Challenge/Level for cross-system compatibility, and put it on the same line as Speed). Also improve the layout as follows: Put Attacks before Skills/Proficiencies, and just leave an empty line, no blank nor bullets. For Skills/Proficiencies and then Special Abilities / Spells, format them the same way (no bullets, empty line).  Do not use first-line indent style for anything (remove it for the blanks and Notes). Change "Universal Briefing Sheet" to "Universal NPC Sheet by Hierosoft - for The Alexandrian's Universal NPC Roleplaying Template" and make it a header so it doesn't take up space in the document. Remove the "NPC Name" line and make a smaller "Name" caption to the left of "title" and make the whole "Name Title Epithet Role" spaced between them a little more, and left aligned.
+
+As I instructed, disable the first-line paragraph indenting mode, and change "Universal NPC Sheet" to the longer title exactly as I gave it, and make it plain paragraph style in the header area of the document, not a heading per se. Make the blanks in the stat area narrower as a said. Currently they are overflowing the right side of the box as shown in the screenshot. Some of the blanks are reaching the right side of the document instead of being limited to the margin as they should, also shown in the attached screenshot.
+
+Put a colon after each instruction under Key Info. Somehow you got the perfect line length (uses the remaining space, no more, no less) for the blank after "Any special conditions or triggers" but not after any of the others. Try to make them fill the line so they are all flush to the right. See each line that doesn't align with the rest in the new screenshot attached, and fix the code determining the length of each of the blanks that are not flush to the right.
+
+Shorten the blanks after each of the 3 items under Roleplaying, and after Notes, so they stop at the margin instead of going past--see attached screenshot. Fix the stray "_" artifact after each Key info instruction, such as by adding a manual break before the blank instead of making assumptions, or whatever latex issue caused the problem. This will be for 8.5x11 paper.
+
+Ok, pretty good. Now make each subheading under Roleplaying non-bold.
