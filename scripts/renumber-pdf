@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# renumber-pdf.sh
+# Removes the first page (cover) from one or more PDF files.
+# The original second page (which has printed number "1") becomes page 1 in the new PDF.
+# Uses mutool clean (from mupdf) — more reliable for page range extraction than merge.
+# Output: renumbered-<original-filename>.pdf in the same directory.
+
+set -euo pipefail
+
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 <file1.pdf> [file2.pdf] ..." >&2
+    echo "       Removes the cover (page 1) from each PDF so numbering lines up." >&2
+    exit 1
+fi
+
+# Check if mutool is installed
+if ! command -v mutool >/dev/null 2>&1; then
+    echo "Error: mutool command not found." >&2
+    echo "       Install it with: sudo apt install mupdf-tools   (Debian/Ubuntu)" >&2
+    echo "       or the equivalent package for your distribution." >&2
+    exit 1
+fi
+
+for input in "$@"; do
+    if [ ! -f "$input" ]; then
+        echo "Warning: File '$input' does not exist. Skipping." >&2
+        continue
+    fi
+
+    # Build output filename
+    dirname="$(dirname "$input")"
+    basename="$(basename "$input")"
+    if [ "$dirname" = "." ]; then
+        output="renumbered-${basename}"
+    else
+        output="${dirname}/renumbered-${basename}"
+    fi
+
+    if [ -f "$output" ]; then
+        rm "$output"
+    fi
+
+    # Remove page 1, keep pages 2 to end → syntax: 2-N  (N = last page)
+    # if mutool clean -o "$output" "$input" 2-N; then
+    if mutool convert -o "$output" "$input" 2-N; then
+        echo "Success: Created '$output' (removed cover page from '$input')"
+    else
+        echo "Error: Failed to process '$input'" >&2
+    fi
+done
